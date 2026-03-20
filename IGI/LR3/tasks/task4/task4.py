@@ -1,3 +1,5 @@
+from .. utils import menu
+
 text = "So she was considering in her own mind, as well as she could," \
 " for the hot day made her feel very sleepy and stupid, whether the pleasure" \
 " of making a daisy-chain would be worth the trouble of getting up and picking " \
@@ -17,7 +19,7 @@ def custom_split(text: str) -> list:
 
 
 def find_longest(text: str, lit: str) -> str:
-    new_words = custom_split(str)
+    new_words = custom_split(text)
     longest = ""
     for i in range(len(new_words)):
         if new_words[i][-1] == lit:
@@ -47,3 +49,23 @@ def find_if_last(text: str, last:str) -> list:
     return [x for x in new_words if x[-1] == last]
 
 
+def Task4():
+    print("Welcome to the programm procceed some text operations")
+    screen = True
+
+    while (screen):
+
+        print(f"a) Amount of words with minimum lenght: {find_count_minimum(text)}")
+        print(f"b) Words, after wich goes point: ")
+        words_point = find_if_last(text, '.')
+        for i in range(len(words_point)):
+            print(words_point[i])
+
+        print (f"c) Find longest word that's end with 'r': {find_longest(text, "r")}")
+
+        
+        
+
+        screen = menu.ProgramEnd()
+
+Task4()
