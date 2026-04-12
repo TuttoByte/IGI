@@ -9,6 +9,15 @@ text = "So she was considering in her own mind, as well as she could," \
 
 
 def custom_split(text: str) -> list:
+    """
+    Splits text by commas, then by spaces. Flattens result into single word list.
+    
+    Args:
+        text (str): input text
+        
+    Returns:
+        list: all words from text
+    """
     words = list(map(lambda x: x.split(), text.split(",")))
 
     new_words = []
@@ -19,18 +28,30 @@ def custom_split(text: str) -> list:
 
 
 def find_longest(text: str, lit: str) -> str:
-    new_words = custom_split(text)
-    longest = ""
-    for i in range(len(new_words)):
-        if new_words[i][-1] == lit:
-            if len(new_words[i]) >= len(longest):
-                longest = new_words[i]
-
-    return longest
+    """
+    Finds longest word ending with given letter.
+    
+    Args:
+        text (str): input text
+        lit (str): ending letter to match
+        
+    Returns:
+        str: longest matching word (empty if none found)
+    """
+    return sorted(list(filter(lambda x: x[-1] == lit, custom_split(text))), key=lambda x: len(x), reverse=True)[0]   
 
 
 
 def find_count_minimum(text: str) -> int:
+    """
+    Counts words with minimum length in text.
+    
+    Args:
+        text (str): input text
+        
+    Returns:
+        int: count of shortest words
+    """
     new_words = custom_split(text)
     
     minimum = len(new_words[0])
@@ -45,11 +66,22 @@ def find_count_minimum(text: str) -> int:
 
 
 def find_if_last(text: str, last:str) -> list:
+    """
+    Finds all words ending with given character.
+    
+    Args:
+        text (str): input text
+        last (str): ending character
+        
+    Returns:
+        list: matching words
+    """
     new_words = custom_split(text)
     return [x for x in new_words if x[-1] == last]
 
 
-def Task4():
+def Task4() -> None:
+    """Main program: demonstrates text analysis functions on sample text."""
     print("Welcome to the programm procceed some text operations")
     screen = True
 

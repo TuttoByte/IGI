@@ -5,6 +5,15 @@ import math
 
 
 def get_sublist(lst: list) -> list:
+    """
+    Extracts sublist from first positive number to last positive number.
+    
+    Args:
+        lst (list): input list of floats
+        
+    Returns:
+        list: sublist between first and last positive elements (empty if no positives)
+    """
     first = - 1
     second = -1
 
@@ -23,13 +32,27 @@ def get_sublist(lst: list) -> list:
     return lst[first:second + 1]     
 
 
-def Task5():
+def Task5() ->None:
+    """Main program: finds sum and absolute minimum of positive sublist."""
     print("Welcome to the programm that help you to find sum and minimum")
     screen = True
 
     while (screen):
-        print("Enter float list to procced\n")
-        lst = io.valifate_user_float_list_input()
+
+        if(io.get_yes_or_no("Would You Like to Generate List? (y/n)")):
+                lst_size = io.validate_user_input_int("Input syze of array: ")
+                lst = list(io.generator_float_list(lst_size))
+        else:
+                print("Enter float list to procced\n")
+                lst = io.valifate_user_float_list_input()
+
+        print("Your List: ", end = "")
+        print(*lst, sep = ", ")
+
+        
+
+        
+        
 
         working_list = get_sublist(lst)
 

@@ -9,6 +9,16 @@ from .. utils import menu
 
 
 def TaylorExp(x, eps :float) -> tuple:
+    """
+    Computes Taylor series for e^x until precision eps is reached.
+    
+    Args:
+        x (float): input value
+        eps (float): required precision
+        
+    Returns:
+        tuple: (n, tseries, etalon) - iterations, approximation, exact value
+    """
 
     etalon = math.exp(x)
     tseries = 0
@@ -23,7 +33,8 @@ def TaylorExp(x, eps :float) -> tuple:
 
 
 
-def Task1():
+def Task1() -> None:
+    """Main program: interactive Taylor series calculator with table output."""
     print("Welcome to the programm that help with finding the number of Taylort seriece")
     screen = True
 
