@@ -1,6 +1,6 @@
 import random as rnd
 import datetime 
-
+from collections.abc import Callable
 
 def repeat_input (func : Callable) -> Callable:
     """

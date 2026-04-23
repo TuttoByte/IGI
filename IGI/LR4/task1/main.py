@@ -1,5 +1,5 @@
 
-import utils.menu
+import utils
 
 
 def main():

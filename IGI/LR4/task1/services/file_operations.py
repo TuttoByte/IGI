@@ -1,7 +1,7 @@
 
 import csv
 import pickle
-from task1.source.resources import WorkerInfo
+from source.resources import WorkerInfo
 
 
 

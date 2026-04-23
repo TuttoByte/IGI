@@ -1,4 +1,4 @@
-from task1.source.resources import WorkerInfo
+from source.resources import WorkerInfo
 import utils.io
 
 
