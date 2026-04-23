@@ -28,11 +28,76 @@ def repeat_input (func : Callable) -> Callable:
     return wrapper
 
 
+
+def validate_positive (func : Callable) -> Callable:
+    """
+    Decorator: validate if input is positive.
+    
+    Args:
+        func: decorated validation function
+        
+    Returns:
+        wrapper: function that return ValueError
+    """
+
+    def wrapper(*args, **kwargs):
+         val = func(*args, **kwargs)
+         if val <= 0:
+             raise ValueError("Side can not be negative")
+         
+         return val
+    return wrapper
+
+
+def validate_angle (func : Callable) -> Callable:
+    """
+    Decorator: validate if triagnle angle is less then 180.
+    
+    Args:
+        func: decorated validation function
+        
+    Returns:
+        wrapper: function that return ValueError
+    """
+
+    def wrapper(*args, **kwargs):
+         val = func(*args, **kwargs)
+         if val >= 180 or val < 0:
+             raise ValueError("Angle in triangle can not be more then 180 or less then 0")
+         return val
+
+    return wrapper
+
+
+
+@repeat_input
+@validate_positive
+def validate_user_input_float_positive(msg : str) -> float:
+    """Repeatedly asks for float input until valid."""
+    inp = (float)(input(msg))
+    return inp
+
+
+
 @repeat_input
 def validate_user_input_float(msg : str) -> float:
     """Repeatedly asks for float input until valid."""
     inp = (float)(input(msg))
     return inp
+
+
+
+
+@repeat_input
+@validate_angle
+def validate_user_input_angle(msg : str) -> float:
+    """Repeatedly asks for float input until valid."""
+    inp = (float)(input(msg))
+    return inp
+
+
+
+
 
 @repeat_input
 def validate_user_input_datatime(msg : str) -> datetime:
