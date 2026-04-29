@@ -9,12 +9,18 @@ months = {
 }
 
 class WorkerInfo:
+    """
+    Store information about one worker.
+    """
     def __init__(self, name : str, date : datetime, duration : int):
         self.startDate = date
         self.duration = duration
         self.name = name
 
     def GetStartMonth(self) -> str:
+        """
+        Return the month name of the worker start date.
+        """
         return months[self.startDate.date().month]
         
 

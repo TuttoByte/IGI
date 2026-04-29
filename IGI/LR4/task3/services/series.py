@@ -15,6 +15,9 @@ import math
 
 
 class Taylor:
+    """
+    Compute Taylor series for e^x and basic statistics for its terms.
+    """
 
     def __init__(self):
 
@@ -54,21 +57,27 @@ class Taylor:
 
 
     def CalculateArifmetic(self) -> float:
+        """Return arithmetic mean of series elements."""
         return sum(self.seriesElements) / len(self.seriesElements)
     
     def CalculateMedian(self) -> float:
+        """Return median of series elements."""
         return statistics.median(self.seriesElements)
     
     def CalculateMode(self) -> float:
+        """Return mode of series elements."""
         return statistics.mode(self.seriesElements)
     
     def CalcualDisperison(self) -> float:
+        """Return sample variance of series elements."""
         return statistics.variance(self.seriesElements)
     
     def CalculatePST(self) -> float:
+        """Return population standard deviation of series elements."""
         return statistics.pstdev(self.seriesElements)
     
     def Plot(selt) -> None:
+        """Plot partial sums and the exact exponential function."""
         dat= np.array(selt.seriesElements)
         
 

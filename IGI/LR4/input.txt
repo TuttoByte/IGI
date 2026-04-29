@@ -1,0 +1,9 @@
+Alice and Bob went to the market. They bought apples, bananas, and oranges!
+Why did they buy so many fruits? Maybe they were preparing for a party.
+
+Look at this pattern: aaabbbccc and aabcccc and aaaabbbcc.
+
+;-----[[[[ is a strange smiley, but :------)))) is also a smiley.
+However ;-- and :)[] are not valid smileys.
+
+Go to the store, buy milk, bread, and cheese. Do it quickly!

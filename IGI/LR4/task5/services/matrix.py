@@ -7,9 +7,11 @@ class MatrixController:
         self.matrix = np.random.rand(n,n)
 
     def Minimum(self) -> float:
+        """Glemet minimum elemnt"""
         return np.min(self.matrix)
         
     def AllMinimum(self) -> list[list]:
+        """Get all minimus"""
         return np.argwhere(self.matrix == self.Minimum)
 
 
@@ -40,6 +42,7 @@ class MatrixOperation:
     
 
     def std_arif(data :np.ndarray) ->Optional[float]:
+        """Calculate the standard deviation of an array by arifm."""
         return np.sum(data) / (data.shape[0] * data.shape[1])
     
     @staticmethod

@@ -8,6 +8,9 @@ import task1.services.file_operations as fl
 
 
 def Task1():
+    """
+    Run the worker management menu.
+    """
 
     print("Welcome to worker controll base")
     controlBase = wr.WokreBase()

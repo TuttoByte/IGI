@@ -1,0 +1,23 @@
+Number of Sentences: 9
+    Including:
+        Affirmative: 6
+        Question: 1
+        Imperative: 2
+Average Sentence Length: 29.666666666666668
+Average Word Length: 4.238095238095238
+Number of Smiles: 2
+Capital Letters: ['A', 'B', 'T', 'W', 'M', 'L', 'H', 'G', 'D']
+Number of the Longest Words: 3
+Words before Punctuation Mark: 12
+The Longest Words That Ends with 'e': strange
+
+Text With Replaced Sequences:
+Alice and Bob went to the market. They bought apples, bananas, and oranges!
+Why did they buy so many fruits? Maybe they were preparing for a party.
+
+Look at this pattern: qqq and aabcccc and qqq.
+
+;-----[[[[ is a strange smiley, but :------)))) is also a smiley.
+However ;-- and :)[] are not valid smileys.
+
+Go to the store, buy milk, bread, and cheese. Do it quickly!
