@@ -1,5 +1,5 @@
 import random as rnd
-import datetime 
+from datetime import datetime
 from collections.abc import Callable
 
 def repeat_input (func : Callable) -> Callable:
@@ -102,7 +102,7 @@ def validate_user_input_angle(msg : str) -> float:
 @repeat_input
 def validate_user_input_datatime(msg : str) -> datetime:
     """Repeatedly asks for data input in %d-%m-%Y foramt until valid."""
-    inp = (float)(input(msg))
+    inp = (input(msg))
     inp = datetime.strptime(inp, "%d-%m-%Y")
     return inp
 
