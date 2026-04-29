@@ -1,3 +1,6 @@
+
+import os
+
 def ProgramEnd() -> bool:
     """
     Menu function: asks user to continue or exit program.
@@ -14,3 +17,8 @@ def ProgramEnd() -> bool:
     
 
     return True
+
+
+
+def cls():
+    os.system('cls' if os.name=='nt' else 'clear')

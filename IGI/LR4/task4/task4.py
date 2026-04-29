@@ -2,11 +2,8 @@
 from utils import menu
 from utils import io
 import task4.services.figures as figures
-import os
 
 
-def cls():
-    os.system('cls' if os.name=='nt' else 'clear')
 
 def Task4():
 
@@ -47,7 +44,7 @@ def Task4():
         
         
         screen = menu.ProgramEnd()
-        cls()
+        menu.cls()
 
 
 
