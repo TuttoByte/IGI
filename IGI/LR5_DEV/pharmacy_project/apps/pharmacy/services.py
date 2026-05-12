@@ -1,0 +1,53 @@
+"""
+Слой команд / политик домена (остатки, переносы и т.д.).
+
+Изменение количества и инварианты склада — не в views и не в ModelForm.save().
+"""
+from __future__ import annotations
+
+from decimal import Decimal
+
+from django.db import transaction
+
+from django.utils import timezone
+
+from apps.pharmacy.models import Medication
+
+
+class MedicationInventoryService:
+    """Операции со складскими остатками в одной транзакции."""
+
+    @staticmethod
+    @transaction.atomic
+    def apply_stock_delta(medication_id: int, delta: int) -> Medication:
+        """
+        delta > 0 — приход, delta < 0 — расход.
+        select_for_update предотвращает гонки при параллельных продажах.
+        """
+        qs = Medication.objects.select_for_update().select_related("category", "department")
+        medication = qs.get(pk=medication_id)
+        new_qty = int(medication.quantity) + int(delta)
+        if new_qty < 0:
+            msg = "Недостаточно товара на складе."
+            raise ValueError(msg)
+        Medication.objects.filter(pk=medication_id).update(
+            quantity=new_qty,
+            updated_at=timezone.now(),
+        )
+        medication.refresh_from_db(fields=["quantity", "updated_at"])
+        return medication
+
+
+class MedicationPricingService:
+    """Пример отдельного сервиса под ценообразование (масштабирование по домену)."""
+
+    @staticmethod
+    @transaction.atomic
+    def set_price(medication_id: int, *, new_price: Decimal) -> Medication:
+        if new_price < 0:
+            raise ValueError("Цена не может быть отрицательной.")
+        Medication.objects.filter(pk=medication_id).update(
+            price=new_price,
+            updated_at=timezone.now(),
+        )
+        return Medication.objects.get(pk=medication_id)

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>{{ medication.name }}</title>
+</head>
+<body>
+    <p><a href="{% url 'pharmacy:medication_list' %}">К каталогу</a></p>
+    <h1>{{ medication.name }}</h1>
+    <p>Код: {{ medication.code }} · Производитель: {{ medication.manufacturer }}</p>
+    <p>Цена: {{ medication.price }} · Остаток: {{ medication.quantity }}</p>
+    <p>Срок годности: {{ medication.expiration_date }}
+        {% if medication.is_expired %}<strong>(просрочен)</strong>{% endif %}
+        {% if medication.is_low_stock %}<em>(мало на складе)</em>{% endif %}
+    </p>
+    <p>Категория: <a href="{{ medication.category.get_absolute_url }}">{{ medication.category.name }}</a></p>
+    <p>Отдел: <a href="{{ medication.department.get_absolute_url }}">{{ medication.department.name }}</a></p>
+    {% if medication.image %}
+        <p><img src="{{ medication.image.url }}" alt="{{ medication.name }}" width="200"></p>
+    {% endif %}
+    <p>{{ medication.description }}</p>
+    <pre style="white-space: pre-wrap;">{{ medication.instruction }}</pre>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>{{ category.name }}</title>
+</head>
+<body>
+    <p><a href="{% url 'pharmacy:medication_list' %}">К каталогу</a></p>
+    <h1>{{ category.name }}</h1>
+    <p>{{ category.description }}</p>
+    <h2>Препараты</h2>
+    <ul>
+        {% for m in category.medications.all %}
+            <li><a href="{{ m.get_absolute_url }}">{{ m.name }}</a> — {{ m.price }}</li>
+        {% empty %}
+            <li>Пока нет препаратов в этой категории.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

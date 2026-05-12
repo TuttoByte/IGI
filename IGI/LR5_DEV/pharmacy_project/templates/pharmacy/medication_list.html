@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Каталог препаратов</title>
+</head>
+<body>
+    <h1>Каталог препаратов</h1>
+    <p><a href="{% url 'core:home' %}">На главную</a></p>
+
+    <form method="get" class="filters">
+        {{ filter.form.as_p }}
+        <button type="submit">Применить</button>
+        <a href="{% url 'pharmacy:medication_list' %}">Сбросить</a>
+    </form>
+
+    <ul>
+        {% for m in medications %}
+            <li>
+                <a href="{{ m.get_absolute_url }}">{{ m.name }}</a>
+                — {{ m.price }} (остаток: {{ m.quantity }})
+                {% if m.is_expired %}<strong>[просрочен]</strong>{% endif %}
+                {% if m.is_low_stock %}<em>[мало на складе]</em>{% endif %}
+            </li>
+        {% empty %}
+            <li>Ничего не найдено.</li>
+        {% endfor %}
+    </ul>
+
+    {% if is_paginated %}
+        <nav>
+            {% if page_obj.has_previous %}
+                <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">Назад</a>
+            {% endif %}
+            Стр. {{ page_obj.number }} из {{ paginator.num_pages }}
+            {% if page_obj.has_next %}
+                <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Вперёд</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>pharmacy_project</title>
+</head>
+<body>
+    <h1>pharmacy_project (DEV)</h1>
+    <p>Django + DRF, SQLite.</p>
+    <p>
+        <a href="/admin/">Админка</a> ·
+        <a href="/api/health/">API health</a> ·
+        <a href="{% url 'accounts:register' %}">Регистрация</a> ·
+        <a href="{% url 'accounts:login' %}">Вход</a> ·
+        <a href="{% url 'accounts:admin_dashboard' %}">Панель ADMIN</a> ·
+        <a href="{% url 'accounts:staff_dashboard' %}">Панель staff</a> ·
+        <a href="{% url 'pharmacy:medication_list' %}">Каталог препаратов</a>
+    </p>
+    {% if user.is_authenticated %}
+        <p>Вы вошли как {{ user.username }} ({{ user.role }}).</p>
+        <form action="{% url 'accounts:logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Выйти</button>
+        </form>
+    {% endif %}
+</body>
+</html>
