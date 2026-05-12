@@ -1,27 +1,32 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <title>pharmacy_project</title>
-</head>
-<body>
-    <h1>pharmacy_project (DEV)</h1>
-    <p>Django + DRF, SQLite.</p>
-    <p>
-        <a href="/admin/">Админка</a> ·
-        <a href="/api/health/">API health</a> ·
-        <a href="{% url 'accounts:register' %}">Регистрация</a> ·
-        <a href="{% url 'accounts:login' %}">Вход</a> ·
-        <a href="{% url 'accounts:admin_dashboard' %}">Панель ADMIN</a> ·
-        <a href="{% url 'accounts:staff_dashboard' %}">Панель staff</a> ·
-        <a href="{% url 'pharmacy:medication_list' %}">Каталог препаратов</a>
-    </p>
-    {% if user.is_authenticated %}
-        <p>Вы вошли как {{ user.username }} ({{ user.role }}).</p>
-        <form action="{% url 'accounts:logout' %}" method="post">
-            {% csrf_token %}
-            <button type="submit">Выйти</button>
-        </form>
-    {% endif %}
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Главная{% endblock %}
+{% block content %}
+<section class="card stagger" style="max-width: 720px;">
+    <span class="pill">DEV</span>
+    <h1 style="margin-top: 1rem;">Добро пожаловать</h1>
+    <p class="lead">Django 5, SQLite, каталог препаратов и учётные записи — всё для локальной проверки.</p>
+    <div class="hero-actions">
+        <a class="btn btn-primary" href="{% url 'pharmacy:medication_list' %}">Открыть каталог</a>
+        <a class="btn btn-ghost" href="{% url 'accounts:login' %}">Войти</a>
+        <a class="btn btn-ghost" href="{% url 'accounts:register' %}">Регистрация</a>
+    </div>
+    <div class="link-row">
+        <a class="btn btn-ghost" href="/admin/">Django Admin</a>
+        <a class="btn btn-ghost" href="/api/health/">API health</a>
+    </div>
+</section>
+
+<section class="card-grid stagger" style="margin-top: 2rem;">
+    <article class="card">
+        <h2 style="font-size: 1.1rem; margin: 0 0 0.5rem;">Каталог</h2>
+        <p class="lead" style="font-size: 0.9rem; margin-bottom: 1rem;">Поиск, фильтры и сортировка препаратов.</p>
+        <a class="btn btn-primary" href="{% url 'pharmacy:medication_list' %}">Перейти</a>
+    </article>
+    <article class="card">
+        <h2 style="font-size: 1.1rem; margin: 0 0 0.5rem;">Роли</h2>
+        <p class="lead" style="font-size: 0.9rem; margin-bottom: 1rem;">Панели для ADMIN и сотрудников (staff).</p>
+        <a class="btn btn-ghost" href="{% url 'accounts:admin_dashboard' %}">ADMIN</a>
+        <a class="btn btn-ghost" href="{% url 'accounts:staff_dashboard' %}">Staff</a>
+    </article>
+</section>
+{% endblock %}

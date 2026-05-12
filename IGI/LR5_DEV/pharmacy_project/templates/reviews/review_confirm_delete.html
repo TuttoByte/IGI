@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Удалить отзыв{% endblock %}
+{% block content %}
+<section class="card animate-enter" style="margin-top:1rem;">
+    <h1 style="font-size:1.2rem;">Удалить отзыв?</h1>
+    <p class="lead">{{ object.medication.name }} · {{ object.rating }}★</p>
+    <form method="post" style="margin-top:1rem;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Да, удалить</button>
+        <a class="btn btn-ghost" href="{{ object.get_absolute_url }}">Отмена</a>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Новый отзыв · {{ medication.name }}{% endblock %}
+{% block content %}
+<p><a class="btn btn-ghost" href="{{ medication.get_absolute_url }}">← {{ medication.name }}</a></p>
+<section class="card animate-enter" style="margin-top:1rem;">
+    <h1 style="font-size:1.2rem;">Отзыв о препарате</h1>
+    <p class="lead">{{ medication.name }} <span class="pill">{{ medication.code }}</span></p>
+    <form method="post" class="filters" style="margin-top:1rem;">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Отправить на модерацию</button>
+    </form>
+</section>
+{% endblock %}

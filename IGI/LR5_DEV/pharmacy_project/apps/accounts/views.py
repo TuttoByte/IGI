@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView, TemplateView
 
 from apps.accounts.decorators import role_required
-from apps.accounts.forms import CustomerRegistrationForm
+from apps.accounts.forms import CustomerRegistrationForm, StyledAuthenticationForm
 from apps.accounts.models import UserRole
 from apps.accounts.services import CustomerRegistrationDTO, RegistrationService
 
@@ -46,6 +46,7 @@ class AccountLoginView(LoginView):
 
     template_name = "accounts/login.html"
     redirect_authenticated_user = True
+    authentication_form = StyledAuthenticationForm
 
 
 class AccountLogoutView(LogoutView):

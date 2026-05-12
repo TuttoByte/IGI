@@ -10,6 +10,8 @@ from django_filters.views import FilterView
 
 from apps.pharmacy.filters import MedicationFilter
 from apps.pharmacy import selectors
+from apps.reviews import selectors as review_selectors
+from apps.reviews.models import Review
 
 
 class MedicationListView(FilterView):
@@ -41,6 +43,21 @@ class MedicationDetailView(DetailView):
 
     def get_queryset(self):
         return selectors.medications_for_catalog()
+
+    def get_context_data(self, **kwargs: object) -> dict[str, object]:
+        ctx = super().get_context_data(**kwargs)
+        med = self.object
+        ctx["review_stats"] = review_selectors.medication_review_stats(med.pk)
+        ctx["latest_reviews"] = review_selectors.approved_reviews_for_medication(med.pk, limit=12)
+        if self.request.user.is_authenticated:
+            ctx["user_review"] = (
+                Review.objects.filter(medication_id=med.pk, user_id=self.request.user.pk)
+                .only("pk", "moderation_status")
+                .first()
+            )
+        else:
+            ctx["user_review"] = None
+        return ctx
 
 
 class CategoryDetailView(DetailView):

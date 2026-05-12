@@ -37,6 +37,7 @@ class MedicationFilter(django_filters.FilterSet):
             ("quantity", "по остатку"),
             ("code", "по коду"),
             ("created_at", "по дате добавления"),
+            ("avg_review_rating", "по рейтингу"),
         ),
         label="Сортировка",
     )

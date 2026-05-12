@@ -20,6 +20,7 @@ class CustomUserAdmin(DjangoUserAdmin):
     list_display = ("username", "email", "role", "is_staff", "is_active", "date_joined")
     list_filter = ("role", "is_staff", "is_active")
     ordering = ("username",)
+    search_fields = ("username", "email", "first_name", "last_name")
 
     fieldsets = (
         (None, {"fields": ("username", "password")}),

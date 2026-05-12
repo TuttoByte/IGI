@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Чек #{{ sale.pk }}{% endblock %}
+{% block content %}
+<p>
+    <a class="btn btn-ghost" href="{% url 'sales:sale_list' %}">← К списку</a>
+    <a class="btn btn-primary" href="{% url 'sales:sale_create' %}">Новая продажа</a>
+</p>
+<section class="card animate-enter" style="margin-top:1rem;">
+    <h1>Чек #{{ sale.pk }}</h1>
+    <p class="lead">
+        <span class="pill">{{ sale.get_status_display }}</span>
+        {{ sale.created_at }}<br>
+        Покупатель: <strong>{{ sale.customer.username }}</strong><br>
+        Сотрудник: <strong>{{ sale.employee.username }}</strong><br>
+        Итого: <strong style="color:var(--accent); font-size:1.2rem;">{{ sale.total_price }} BYN</strong>
+    </p>
+    <h2 style="font-size:1.05rem; margin:1.25rem 0 0.5rem;">Позиции</h2>
+    <table style="width:100%; border-collapse:collapse; font-size:0.95rem;">
+        <thead>
+            <tr style="text-align:left; color:var(--text-muted);">
+                <th style="padding:0.4rem 0;">Препарат</th>
+                <th>Кол-во</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for it in sale.items.all %}
+                <tr style="border-top:1px solid var(--border);">
+                    <td style="padding:0.5rem 0;">{{ it.medication.name }} ({{ it.medication.code }})</td>
+                    <td>{{ it.quantity }}</td>
+                    <td>{{ it.price }}</td>
+                    <td>{{ it.subtotal }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 
 from apps.pharmacy.models import Category, Department, Medication
@@ -69,3 +70,24 @@ def test_inventory_service_apply_delta():
     MedicationInventoryService.apply_stock_delta(m.pk, -3)
     m.refresh_from_db()
     assert m.quantity == 7
+
+
+@pytest.mark.django_db
+def test_inventory_insufficient_raises_validation_error():
+    cat = Category.objects.create(name="V2", slug="v2")
+    dep = Department.objects.create(name="Z2", slug="z2", floor=1)
+    m = Medication.objects.create(
+        code="VIT-D",
+        name="Vit D",
+        slug="vit-d",
+        description="",
+        instruction="",
+        manufacturer="X",
+        price=Decimal("20.00"),
+        quantity=2,
+        expiration_date=date.today() + timedelta(days=100),
+        category=cat,
+        department=dep,
+    )
+    with pytest.raises(ValidationError):
+        MedicationInventoryService.apply_stock_delta(m.pk, -5)

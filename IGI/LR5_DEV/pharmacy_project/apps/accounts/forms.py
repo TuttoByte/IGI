@@ -7,12 +7,22 @@ from __future__ import annotations
 
 from datetime import date
 
+from django.contrib.auth.forms import AuthenticationForm
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.validators import validate_belarus_mobile_phone, validate_minimum_age_18
+
+
+class StyledAuthenticationForm(AuthenticationForm):
+    """Единый вид полей входа с основным шаблоном."""
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs.setdefault("autocomplete", "username" if name == "username" else "current-password")
 
 
 class CustomerRegistrationForm(forms.Form):
@@ -27,6 +37,10 @@ class CustomerRegistrationForm(forms.Form):
     phone = forms.CharField(label=_("Телефон"), max_length=20)
     address = forms.CharField(label=_("Адрес"), widget=forms.Textarea)
     avatar = forms.ImageField(label=_("Аватар"), required=False)
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["address"].widget.attrs.setdefault("rows", 3)
 
     def clean_username(self) -> str:
         username = self.cleaned_data["username"]

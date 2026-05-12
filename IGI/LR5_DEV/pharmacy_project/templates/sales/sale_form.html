@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Новая продажа{% endblock %}
+{% block content %}
+<p><a class="btn btn-ghost" href="{% url 'sales:sale_list' %}">← К списку</a></p>
+<section class="form-card animate-enter" style="max-width:720px;">
+    <div class="card">
+        <h1>Новая продажа</h1>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if header_form.non_field_errors %}
+                <ul class="messages">{% for e in header_form.non_field_errors %}<li class="error">{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+            <h2 style="font-size:1rem; color:var(--text-muted);">Шапка чека</h2>
+            {% for field in header_form %}
+                <div>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field.errors }}
+                    {{ field }}
+                </div>
+            {% endfor %}
+            <h2 style="font-size:1rem; color:var(--text-muted); margin-top:1.25rem;">Позиции</h2>
+            {{ formset.management_form }}
+            {% for form in formset %}
+                <div class="card" style="padding:1rem; margin-bottom:0.75rem;">
+                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                    {% for field in form.visible_fields %}
+                        <div>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field.errors }}
+                            {{ field }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button class="btn btn-primary" type="submit" style="margin-top:1rem;">Провести продажу</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

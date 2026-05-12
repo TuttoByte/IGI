@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <title>{{ title }}</title>
-</head>
-<body>
-    <h1>{{ title }}</h1>
-    <p>Доступ для ролей ADMIN и EMPLOYEE.</p>
-    <p><a href="{% url 'core:home' %}">На главную</a></p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<section class="card animate-enter" style="max-width: 640px;">
+    <span class="pill">Staff</span>
+    <h1 style="margin-top:1rem;">{{ title }}</h1>
+    <p class="lead">Для ролей <strong>ADMIN</strong> и <strong>EMPLOYEE</strong>.</p>
+    <a class="btn btn-primary" href="{% url 'core:home' %}">На главную</a>
+</section>
+{% endblock %}

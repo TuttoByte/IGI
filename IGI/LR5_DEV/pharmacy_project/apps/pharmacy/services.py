@@ -7,9 +7,10 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
-
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.pharmacy.models import Medication
 
@@ -28,8 +29,7 @@ class MedicationInventoryService:
         medication = qs.get(pk=medication_id)
         new_qty = int(medication.quantity) + int(delta)
         if new_qty < 0:
-            msg = "Недостаточно товара на складе."
-            raise ValueError(msg)
+            raise ValidationError(_("Недостаточно товара на складе."), code="insufficient_stock")
         Medication.objects.filter(pk=medication_id).update(
             quantity=new_qty,
             updated_at=timezone.now(),
@@ -45,7 +45,7 @@ class MedicationPricingService:
     @transaction.atomic
     def set_price(medication_id: int, *, new_price: Decimal) -> Medication:
         if new_price < 0:
-            raise ValueError("Цена не может быть отрицательной.")
+            raise ValidationError(_("Цена не может быть отрицательной."), code="invalid_price")
         Medication.objects.filter(pk=medication_id).update(
             price=new_price,
             updated_at=timezone.now(),

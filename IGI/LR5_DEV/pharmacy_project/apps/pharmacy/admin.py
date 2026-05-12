@@ -39,6 +39,7 @@ class MedicationAdmin(admin.ModelAdmin):
         "requires_prescription",
         "category",
         "department",
+        "supplier_summary",
         "created_at",
     )
     list_select_related = ("category", "department")
@@ -46,7 +47,7 @@ class MedicationAdmin(admin.ModelAdmin):
     search_fields = ("name", "code", "slug", "manufacturer", "description")
     autocomplete_fields = ("category", "department")
     prepopulated_fields = {"slug": ("name",)}
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at", "supplier_summary")
     date_hierarchy = "expiration_date"
     show_full_result_count = False
 
@@ -55,5 +56,19 @@ class MedicationAdmin(admin.ModelAdmin):
         (_("Описание"), {"fields": ("description", "instruction", "manufacturer", "image")}),
         (_("Склад и цена"), {"fields": ("price", "quantity", "expiration_date", "requires_prescription")}),
         (_("Классификация"), {"fields": ("category", "department")}),
+        (_("Поставщики"), {"fields": ("supplier_summary",)}),
         (_("Служебное"), {"fields": ("created_at", "updated_at")}),
     )
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("category", "department")
+            .prefetch_related("suppliers")
+        )
+
+    @admin.display(description=_("поставщики"))
+    def supplier_summary(self, obj: Medication) -> str:
+        names = [s.name for s in obj.suppliers.all()]
+        return ", ".join(names) if names else "—"

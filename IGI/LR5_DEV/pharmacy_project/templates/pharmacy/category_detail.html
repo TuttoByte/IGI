@@ -1,20 +1,17 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <title>{{ category.name }}</title>
-</head>
-<body>
-    <p><a href="{% url 'pharmacy:medication_list' %}">К каталогу</a></p>
+{% extends "base.html" %}
+{% block title %}{{ category.name }}{% endblock %}
+{% block content %}
+<p><a class="btn btn-ghost" href="{% url 'pharmacy:medication_list' %}">← К каталогу</a></p>
+<section class="card animate-enter" style="margin-top:1rem;">
     <h1>{{ category.name }}</h1>
-    <p>{{ category.description }}</p>
-    <h2>Препараты</h2>
-    <ul>
+    <p class="lead">{{ category.description|default:"—" }}</p>
+    <h2 style="font-size:1.05rem; margin:1.5rem 0 0.75rem;">Препараты</h2>
+    <ul class="med-list">
         {% for m in category.medications.all %}
-            <li><a href="{{ m.get_absolute_url }}">{{ m.name }}</a> — {{ m.price }}</li>
+            <li><a href="{{ m.get_absolute_url }}">{{ m.name }}</a> — <span style="color:var(--accent);">{{ m.price }} BYN</span></li>
         {% empty %}
-            <li>Пока нет препаратов в этой категории.</li>
+            <li class="lead">В этой категории пока пусто.</li>
         {% endfor %}
     </ul>
-</body>
-</html>
+</section>
+{% endblock %}

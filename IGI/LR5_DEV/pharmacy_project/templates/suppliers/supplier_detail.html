@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ supplier.name }}{% endblock %}
+{% block content %}
+<p>
+    <a class="btn btn-ghost" href="{% url 'suppliers:supplier_list' %}">← К списку</a>
+    <a class="btn btn-ghost" href="{% url 'suppliers:supplier_update' supplier.slug %}">Изменить</a>
+    <a class="btn btn-ghost" href="{% url 'suppliers:supplier_delete' supplier.slug %}">Удалить</a>
+</p>
+<section class="card animate-enter" style="margin-top:1rem;">
+    <h1>{{ supplier.name }}</h1>
+    <p class="lead">{{ supplier.email }} · {{ supplier.phone }}</p>
+    <p class="lead">{{ supplier.address }}</p>
+    <p class="lead"><span class="pill">Договор {{ supplier.contract_number }}</span></p>
+    <h2 style="font-size:1.05rem; margin:1.5rem 0 0.5rem;">Препараты</h2>
+    <ul class="med-list">
+        {% for m in supplier.medications.all %}
+            <li><a href="{{ m.get_absolute_url }}">{{ m.name }}</a> — {{ m.code }}</li>
+        {% empty %}
+            <li class="lead">Связанных препаратов пока нет.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}
