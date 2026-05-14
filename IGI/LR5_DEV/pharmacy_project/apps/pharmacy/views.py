@@ -18,7 +18,7 @@ class MedicationListView(FilterView):
     """Список препаратов: django-filter + пагинация из MultipleObjectMixin."""
 
     filterset_class = MedicationFilter
-    template_name = "pharmacy/medication_list.html"
+    template_name = "frontend/pharmacy/medication_list.html"
     paginate_by = 20
     context_object_name = "medications"
 
@@ -38,7 +38,7 @@ class MedicationDetailView(DetailView):
 
     slug_field = "slug"
     slug_url_kwarg = "slug"
-    template_name = "pharmacy/medication_detail.html"
+    template_name = "frontend/pharmacy/medication_detail.html"
     context_object_name = "medication"
 
     def get_queryset(self):
@@ -63,7 +63,7 @@ class MedicationDetailView(DetailView):
 class CategoryDetailView(DetailView):
     """Категория с префетчем препаратов (prefetch_related в селекторе)."""
 
-    template_name = "pharmacy/category_detail.html"
+    template_name = "frontend/pharmacy/category_detail.html"
     context_object_name = "category"
 
     def get_object(self, queryset=None):  # noqa: ARG002
@@ -76,7 +76,7 @@ class CategoryDetailView(DetailView):
 
 
 class DepartmentDetailView(DetailView):
-    template_name = "pharmacy/department_detail.html"
+    template_name = "frontend/pharmacy/department_detail.html"
     context_object_name = "department"
 
     def get_object(self, queryset=None):  # noqa: ARG002

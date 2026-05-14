@@ -1,0 +1,66 @@
+{% extends "frontend/base.html" %}
+{% block title %}Каталог препаратов{% endblock %}
+{% block content %}
+<h1>Каталог препаратов</h1>
+<p class="lead">Поиск по названию, коду, описанию; фильтры и сортировка.</p>
+
+<section class="filters-panel animate-enter">
+    <div class="card">
+        <form method="get" class="filters">
+            {{ filter.form.as_p }}
+            <div class="filter-actions">
+                <button class="btn btn-primary" type="submit">Применить</button>
+                <a class="btn btn-ghost" href="{% url 'pharmacy:medication_list' %}">Сбросить</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="card stagger">
+    <ul class="med-list">
+        {% for m in medications %}
+            <li class="card" style="padding:1rem 1.15rem; margin-bottom:0.75rem;">
+                <div class="med-row">
+                    {% if m.image %}
+                        <a href="{{ m.get_absolute_url }}"><img class="med-thumb" src="{{ m.image.url }}" alt=""></a>
+                    {% else %}
+                        <div class="med-thumb-placeholder">нет фото</div>
+                    {% endif %}
+                    <div style="flex:1; min-width:12rem;">
+                        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem 1rem; justify-content:space-between;">
+                            <div>
+                                <a href="{{ m.get_absolute_url }}">{{ m.name }}</a>
+                                <span class="pill" style="margin-left:0.35rem;">{{ m.code }}</span>
+                                {% if m.approved_reviews_count %}
+                                    <span class="pill" title="Средняя оценка по опубликованным отзывам">{{ m.avg_review_rating|floatformat:1 }}★ · {{ m.approved_reviews_count }} отз.</span>
+                                {% endif %}
+                            </div>
+                            <strong style="color:var(--accent);">{{ m.price }} BYN</strong>
+                        </div>
+                        <p class="lead" style="font-size:0.85rem; margin:0.5rem 0 0;">
+                            Остаток: {{ m.quantity }}
+                            {% if m.is_expired %}<span class="pill pill-danger">просрочен</span>{% endif %}
+                            {% if m.is_low_stock %}<span class="pill pill-warn">мало</span>{% endif %}
+                            · {{ m.category.name }} · {{ m.department.name }}
+                        </p>
+                    </div>
+                </div>
+            </li>
+        {% empty %}
+            <li class="lead">Ничего не найдено. Запустите <code>python manage.py seed_demo</code> для демо-данных.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+{% if is_paginated %}
+<nav class="card animate-enter" style="margin-top:1.25rem; padding:1rem 1.25rem; display:flex; flex-wrap:wrap; align-items:center; gap:1rem; justify-content:center;">
+    {% if page_obj.has_previous %}
+        <a class="btn btn-ghost" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">← Назад</a>
+    {% endif %}
+    <span class="lead" style="margin:0; font-size:0.9rem;">Стр. {{ page_obj.number }} из {{ paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a class="btn btn-ghost" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Вперёд →</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

@@ -13,12 +13,12 @@ from apps.sales.forms import SaleHeaderForm, SaleLineFormSet
 from apps.sales.models import Sale
 from apps.sales import selectors as sale_selectors
 from apps.sales.services import SaleLineInput, SaleService
-from apps.suppliers.mixins import StaffRequiredMixin
+from apps.accounts.mixins import DashboardAccessMixin
 
 
-class SaleListView(StaffRequiredMixin, ListView):
+class SaleListView(DashboardAccessMixin, ListView):
     model = Sale
-    template_name = "sales/sale_list.html"
+    template_name = "dashboard/sales/sale_list.html"
     context_object_name = "sales"
     paginate_by = 20
 
@@ -26,9 +26,9 @@ class SaleListView(StaffRequiredMixin, ListView):
         return sale_selectors.sales_for_list()
 
 
-class SaleDetailView(StaffRequiredMixin, DetailView):
+class SaleDetailView(DashboardAccessMixin, DetailView):
     model = Sale
-    template_name = "sales/sale_detail.html"
+    template_name = "dashboard/sales/sale_detail.html"
     context_object_name = "sale"
     pk_url_kwarg = "pk"
 
@@ -39,10 +39,10 @@ class SaleDetailView(StaffRequiredMixin, DetailView):
         return obj
 
 
-class SaleCreateView(StaffRequiredMixin, ContextMixin, TemplateResponseMixin, View):
+class SaleCreateView(DashboardAccessMixin, ContextMixin, TemplateResponseMixin, View):
     """GET/POST: шапка + formset; валидация и SaleService — единственное место сценария."""
 
-    template_name = "sales/sale_form.html"
+    template_name = "dashboard/sales/sale_form.html"
 
     def get(self, request, *args: object, **kwargs: object) -> HttpResponse:
         context = self.get_context_data(

@@ -1,12 +1,6 @@
-"""Доступ к CRUD поставщиков только у staff (админка аптеки)."""
+"""Обратная совместимость: используйте apps.accounts.mixins.DashboardAccessMixin."""
 from __future__ import annotations
 
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from apps.accounts.mixins import DashboardAccessMixin
 
-
-class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """Минимальная политика для внутренних операций (можно заменить на роль EMPLOYEE)."""
-
-    def test_func(self) -> bool:
-        user = self.request.user
-        return bool(user.is_authenticated and user.is_staff)
+StaffRequiredMixin = DashboardAccessMixin

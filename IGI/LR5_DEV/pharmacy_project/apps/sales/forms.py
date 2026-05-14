@@ -18,7 +18,10 @@ class SaleHeaderForm(forms.Form):
     )
     employee = forms.ModelChoiceField(
         label="Сотрудник",
-        queryset=User.objects.filter(is_staff=True, is_active=True).order_by("username"),
+        queryset=User.objects.filter(
+            role__in=(UserRole.ADMIN, UserRole.EMPLOYEE),
+            is_active=True,
+        ).order_by("username"),
     )
 
 

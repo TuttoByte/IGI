@@ -1,0 +1,14 @@
+{% extends "frontend/base.html" %}
+{% block title %}Редактирование отзыва{% endblock %}
+{% block content %}
+<p><a class="btn btn-ghost" href="{{ object.get_absolute_url }}">← К отзыву</a></p>
+<section class="card animate-enter" style="margin-top:1rem;">
+    <h1 style="font-size:1.2rem;">Редактировать отзыв</h1>
+    <p class="lead">{{ object.medication.name }}</p>
+    <form method="post" class="filters" style="margin-top:1rem;">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+</section>
+{% endblock %}

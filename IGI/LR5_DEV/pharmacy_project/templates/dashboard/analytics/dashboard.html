@@ -1,0 +1,144 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block title %}Аналитика{% endblock %}
+{% block extra_head %}
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<h1>Дашборд аптеки</h1>
+<p class="lead">Показатели по проведённым продажам (ORM: Sum, Avg, Count, annotate).</p>
+
+<section class="card stagger animate-enter" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap:1rem; margin-bottom:1.25rem;">
+    <div class="card" style="padding:1rem;">
+        <div class="lead" style="font-size:0.8rem; color:var(--text-muted); margin:0;">Общая выручка</div>
+        <strong style="font-size:1.35rem; color:var(--accent);">{{ summary.total_revenue|floatformat:2 }} BYN</strong>
+    </div>
+    <div class="card" style="padding:1rem;">
+        <div class="lead" style="font-size:0.8rem; color:var(--text-muted); margin:0;">Средний чек</div>
+        <strong style="font-size:1.35rem; color:var(--accent);">
+            {% if summary.average_check is not None %}{{ summary.average_check|floatformat:2 }} BYN{% else %}—{% endif %}
+        </strong>
+    </div>
+    <div class="card" style="padding:1rem;">
+        <div class="lead" style="font-size:0.8rem; color:var(--text-muted); margin:0;">Чеков (проведено)</div>
+        <strong style="font-size:1.35rem;">{{ summary.completed_sales_count|intcomma }}</strong>
+    </div>
+</section>
+
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap:1.25rem; align-items:start;">
+    <section class="card animate-enter" style="padding:1rem 1.25rem;">
+        <h2 style="font-size:1rem; margin:0 0 0.75rem;">Продажи по дням (30 дн.)</h2>
+        <div style="position:relative; height:260px;">
+            <canvas id="chartByDay" aria-label="График выручки по дням"></canvas>
+        </div>
+    </section>
+    <section class="card animate-enter" style="padding:1rem 1.25rem;">
+        <h2 style="font-size:1rem; margin:0 0 0.75rem;">Выручка по отделам</h2>
+        <div style="position:relative; height:260px;">
+            <canvas id="chartByDepartment" aria-label="График по отделам"></canvas>
+        </div>
+    </section>
+</div>
+
+<section class="card animate-enter stagger" style="margin-top:1.25rem; padding:1rem 1.25rem;">
+    <h2 style="font-size:1rem; margin:0 0 0.75rem;">Популярные медикаменты</h2>
+    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+        <thead>
+            <tr style="text-align:left; border-bottom:1px solid var(--border); color:var(--text-muted);">
+                <th style="padding:0.5rem 0;">Препарат</th>
+                <th style="padding:0.5rem 0;">Код</th>
+                <th style="padding:0.5rem 0;">Шт.</th>
+                <th style="padding:0.5rem 0;">Выручка</th>
+                <th style="padding:0.5rem 0;">Строк</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in popular %}
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:0.5rem 0;">{{ m.medication_name }}</td>
+                    <td><span class="pill">{{ m.medication_code }}</span></td>
+                    <td>{{ m.units_sold|intcomma }}</td>
+                    <td>{{ m.revenue|floatformat:2 }}</td>
+                    <td>{{ m.sale_lines|intcomma }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="lead">Нет данных по продажам.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="card animate-enter" style="margin-top:1.25rem; padding:1rem 1.25rem;">
+    <h2 style="font-size:1rem; margin:0 0 0.75rem;">По отделам (таблица)</h2>
+    <ul class="med-list">
+        {% for d in by_department %}
+            <li style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+                <span>{{ d.department_name }}</span>
+                <span><strong>{{ d.revenue|floatformat:2 }} BYN</strong> · {{ d.line_count|intcomma }} строк</span>
+            </li>
+        {% empty %}
+            <li class="lead">Нет продаж по отделам.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+{{ chart_by_day|json_script:"chart-by-day-data" }}
+{{ chart_by_department|json_script:"chart-by-department-data" }}
+<script>
+(function () {
+  function parse(id) {
+    var el = document.getElementById(id);
+    if (!el || !el.textContent) return null;
+    return JSON.parse(el.textContent);
+  }
+  function ready(fn) {
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn);
+    else fn();
+  }
+  ready(function () {
+    if (typeof Chart === "undefined") return;
+    var byDay = parse("chart-by-day-data");
+    var byDep = parse("chart-by-department-data");
+    if (byDay && byDay.labels && byDay.labels.length && document.getElementById("chartByDay")) {
+      new Chart(document.getElementById("chartByDay"), {
+        type: "line",
+        data: {
+          labels: byDay.labels,
+          datasets: [{
+            label: "Выручка, BYN",
+            data: byDay.revenue,
+            borderColor: "rgb(99, 102, 241)",
+            backgroundColor: "rgba(99, 102, 241, 0.15)",
+            fill: true,
+            tension: 0.2,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { x: { ticks: { maxRotation: 45, minRotation: 0 } } },
+        },
+      });
+    }
+    if (byDep && document.getElementById("chartByDepartment") && byDep.labels.length) {
+      new Chart(document.getElementById("chartByDepartment"), {
+        type: "bar",
+        data: {
+          labels: byDep.labels,
+          datasets: [{
+            label: "Выручка, BYN",
+            data: byDep.revenue,
+            backgroundColor: "rgba(34, 197, 94, 0.55)",
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { x: { ticks: { maxRotation: 30 } } },
+        },
+      });
+    }
+  });
+})();
+</script>
+{% endblock %}

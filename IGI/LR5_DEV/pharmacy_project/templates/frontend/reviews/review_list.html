@@ -1,0 +1,53 @@
+{% extends "frontend/base.html" %}
+{% block title %}Отзывы{% endblock %}
+{% block content %}
+<h1>Отзывы</h1>
+<p class="lead">Список с фильтрами и сортировкой (в т.ч. по оценке и дате).</p>
+
+<section class="filters-panel animate-enter">
+    <div class="card">
+        <form method="get" class="filters">
+            {{ filter.form.as_p }}
+            <div class="filter-actions">
+                <button class="btn btn-primary" type="submit">Применить</button>
+                <a class="btn btn-ghost" href="{% url 'reviews:review_list' %}">Сбросить</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="card stagger">
+    <ul class="med-list">
+        {% for r in reviews %}
+            <li class="card" style="padding:1rem 1.15rem; margin-bottom:0.75rem;">
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem 1rem; justify-content:space-between;">
+                    <div>
+                        <a href="{{ r.get_absolute_url }}">{{ r.medication.name }}</a>
+                        <span class="pill" style="margin-left:0.35rem;">{{ r.rating }}★</span>
+                        <span class="pill">{{ r.get_moderation_status_display }}</span>
+                    </div>
+                    <span class="lead" style="font-size:0.85rem; margin:0;">{{ r.created_at|date:"d.m.Y H:i" }}</span>
+                </div>
+                <p class="lead" style="font-size:0.85rem; margin:0.5rem 0 0;">
+                    {{ r.user.username }}
+                    {% if r.text %}· {{ r.text|truncatewords:40 }}{% endif %}
+                </p>
+            </li>
+        {% empty %}
+            <li class="lead">Нет отзывов по выбранным условиям.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+{% if is_paginated %}
+<nav class="card animate-enter" style="margin-top:1.25rem; padding:1rem 1.25rem; display:flex; flex-wrap:wrap; align-items:center; gap:1rem; justify-content:center;">
+    {% if page_obj.has_previous %}
+        <a class="btn btn-ghost" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">← Назад</a>
+    {% endif %}
+    <span class="lead" style="margin:0; font-size:0.9rem;">Стр. {{ page_obj.number }} из {{ paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a class="btn btn-ghost" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Вперёд →</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

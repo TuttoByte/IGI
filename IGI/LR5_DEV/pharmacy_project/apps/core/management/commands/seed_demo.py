@@ -1,16 +1,20 @@
 """
-Идемпотентное наполнение: две демо-учётные записи + каталог препаратов.
+Идемпотентное наполнение: демо-пользователи, расширенный каталог с фото, поставщики.
 
 Запуск: python manage.py seed_demo
 """
 from __future__ import annotations
 
+import re
 from datetime import date, timedelta
 from decimal import Decimal
+from io import BytesIO
 
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from PIL import Image
 
 from apps.accounts.models import Profile, UserRole
 from apps.pharmacy.models import Category, Department, Medication
@@ -19,8 +23,15 @@ from apps.suppliers.models import Supplier
 DEMO_PASSWORD = "PharmaDemo2026!"
 
 
+def _placeholder_jpeg_bytes(rgb: tuple[int, int, int]) -> bytes:
+    img = Image.new("RGB", (480, 360), rgb)
+    buf = BytesIO()
+    img.save(buf, format="JPEG", quality=88)
+    return buf.getvalue()
+
+
 class Command(BaseCommand):
-    help = "Создаёт demo_admin, demo_client и демо-каталог (если БД пустая по препаратам)."
+    help = "Создаёт demo_admin, demo_client, демо-каталог с изображениями и поставщиков (идемпотентно)."
 
     def handle(self, *args: object, **options: object) -> None:
         with transaction.atomic():
@@ -67,11 +78,7 @@ class Command(BaseCommand):
         else:
             self.stdout.write("· demo_client уже есть — пропуск")
 
-    def _seed_catalog(self) -> None:
-        if Medication.objects.exists():
-            self.stdout.write("· Каталог уже содержит препараты — пропуск наполнения")
-            return
-
+    def _demo_med_specs(self, today: date) -> list[dict[str, object]]:
         cat_obez, _ = Category.objects.get_or_create(
             slug="obezbolivayushie",
             defaults={"name": "Обезболивающие", "description": "НПВС и анальгетики."},
@@ -79,6 +86,22 @@ class Command(BaseCommand):
         cat_vit, _ = Category.objects.get_or_create(
             slug="vitaminy",
             defaults={"name": "Витамины и БАД", "description": "Поддержка иммунитета."},
+        )
+        cat_gastro, _ = Category.objects.get_or_create(
+            slug="gastro",
+            defaults={"name": "ЖКТ", "description": "Препараты для желудочно-кишечного тракта."},
+        )
+        cat_aller, _ = Category.objects.get_or_create(
+            slug="allergiya",
+            defaults={"name": "Аллергия", "description": "Антигистаминные средства."},
+        )
+        cat_meta, _ = Category.objects.get_or_create(
+            slug="endokrinologiya",
+            defaults={"name": "Эндокринология", "description": "Сахарный диабет и обмен веществ."},
+        )
+        cat_antib, _ = Category.objects.get_or_create(
+            slug="antibiotiki",
+            defaults={"name": "Антибиотики", "description": "Бактериальные инфекции (по рецепту)."},
         )
         dep_zal1, _ = Department.objects.get_or_create(
             slug="zal-1",
@@ -88,9 +111,7 @@ class Command(BaseCommand):
             slug="zal-2",
             defaults={"name": "Зал №2 (рецептурный)", "floor": 2, "description": "Рецептурные препараты."},
         )
-
-        today = date.today()
-        meds: list[dict[str, object]] = [
+        return [
             {
                 "code": "ASP-500-DEMO",
                 "name": "Аспирин таблетки 500 мг",
@@ -104,6 +125,7 @@ class Command(BaseCommand):
                 "requires_prescription": False,
                 "category": cat_obez,
                 "department": dep_zal1,
+                "image_color": (200, 72, 65),
             },
             {
                 "code": "PAR-250-DEMO",
@@ -118,6 +140,7 @@ class Command(BaseCommand):
                 "requires_prescription": False,
                 "category": cat_obez,
                 "department": dep_zal1,
+                "image_color": (72, 118, 210),
             },
             {
                 "code": "RX-AMOX-DEMO",
@@ -130,16 +153,117 @@ class Command(BaseCommand):
                 "quantity": 25,
                 "expiration_date": today + timedelta(days=180),
                 "requires_prescription": True,
-                "category": cat_vit,
+                "category": cat_antib,
                 "department": dep_zal2,
+                "image_color": (78, 168, 102),
+            },
+            {
+                "code": "IBU-200-DEMO",
+                "name": "Ибупрофен 200 мг",
+                "slug": "ibuprofen-200-demo",
+                "description": "НПВС, обезболивание и воспаление.",
+                "instruction": "После еды, не на голодный желудок.",
+                "manufacturer": "ОАО «ДемоФарм»",
+                "price": Decimal("5.40"),
+                "quantity": 95,
+                "expiration_date": today + timedelta(days=300),
+                "requires_prescription": False,
+                "category": cat_obez,
+                "department": dep_zal1,
+                "image_color": (190, 140, 55),
+            },
+            {
+                "code": "VIT-C-DEMO",
+                "name": "Витамин C 500 мг",
+                "slug": "vitamin-c-500-demo",
+                "description": "Аскорбиновая кислота, поддержка иммунитета.",
+                "instruction": "По 1 таблетке в день или по рекомендации.",
+                "manufacturer": "БАД Демо ООО",
+                "price": Decimal("6.10"),
+                "quantity": 200,
+                "expiration_date": today + timedelta(days=500),
+                "requires_prescription": False,
+                "category": cat_vit,
+                "department": dep_zal1,
+                "image_color": (230, 120, 50),
+            },
+            {
+                "code": "OME-20-DEMO",
+                "name": "Омепразол 20 мг",
+                "slug": "omeprazole-20-demo",
+                "description": "Ингибитор протонного насоса.",
+                "instruction": "Утром натощак, курс по назначению врача.",
+                "manufacturer": "МедДемо Плюс",
+                "price": Decimal("7.80"),
+                "quantity": 60,
+                "expiration_date": today + timedelta(days=240),
+                "requires_prescription": False,
+                "category": cat_gastro,
+                "department": dep_zal1,
+                "image_color": (120, 90, 170),
+            },
+            {
+                "code": "LOR-10-DEMO",
+                "name": "Лоратадин 10 мг",
+                "slug": "loratadine-10-demo",
+                "description": "Антигистаминное средство длительного действия.",
+                "instruction": "1 раз в сутки, независимо от еды.",
+                "manufacturer": "АллергоДемо",
+                "price": Decimal("3.90"),
+                "quantity": 140,
+                "expiration_date": today + timedelta(days=320),
+                "requires_prescription": False,
+                "category": cat_aller,
+                "department": dep_zal1,
+                "image_color": (60, 160, 190),
+            },
+            {
+                "code": "MET-500-DEMO",
+                "name": "Метформин 500 мг (рецепт)",
+                "slug": "metformin-500-demo",
+                "description": "Пероральный гипогликемический препарат.",
+                "instruction": "Только по рецепту. Контроль функции почек.",
+                "manufacturer": "ДиабетДемо АО",
+                "price": Decimal("4.50"),
+                "quantity": 40,
+                "expiration_date": today + timedelta(days=150),
+                "requires_prescription": True,
+                "category": cat_meta,
+                "department": dep_zal2,
+                "image_color": (110, 110, 120),
             },
         ]
-        for data in meds:
-            Medication.objects.create(**data)
-        self.stdout.write(self.style.NOTICE(f"✓ Добавлено препаратов: {len(meds)}"))
+
+    def _attach_image_if_missing(self, med: Medication, rgb: tuple[int, int, int]) -> None:
+        if med.image:
+            return
+        data = _placeholder_jpeg_bytes(rgb)
+        safe = re.sub(r"[^a-z0-9_-]+", "-", med.slug.lower())[:80] or "med"
+        med.image.save(f"{safe}.jpg", ContentFile(data), save=True)
+
+    def _seed_catalog(self) -> None:
+        today = date.today()
+        specs = self._demo_med_specs(today)
+        created = 0
+        updated = 0
+        for row in specs:
+            color = row.pop("image_color")
+            assert isinstance(color, tuple)
+            code = str(row["code"])
+            defaults = {k: v for k, v in row.items() if k != "code"}
+            med, was_created = Medication.objects.update_or_create(code=code, defaults=defaults)
+            if was_created:
+                created += 1
+            else:
+                updated += 1
+            self._attach_image_if_missing(med, color)
+        self.stdout.write(
+            self.style.NOTICE(
+                f"✓ Каталог: создано {created}, обновлено по коду {updated}; изображения без фото — добавлены."
+            )
+        )
 
     def _seed_suppliers(self) -> None:
-        """Связывает демо-препараты с поставщиками (идемпотентно)."""
         s1, c1 = Supplier.objects.get_or_create(
             contract_number="DEMO-SUP-001",
             defaults={
@@ -162,15 +286,13 @@ class Command(BaseCommand):
         )
         if c1 or c2:
             self.stdout.write(self.style.NOTICE("✓ Созданы демо-поставщики"))
-        codes = ["ASP-500-DEMO", "PAR-250-DEMO", "RX-AMOX-DEMO"]
-        meds = list(Medication.objects.filter(code__in=codes))
-        if not meds:
-            self.stdout.write("· Нет демо-препаратов — связи поставщиков пропущены")
+
+        demo_meds = list(Medication.objects.filter(code__endswith="-DEMO").order_by("code"))
+        if not demo_meds:
+            self.stdout.write("· Нет демо-препаратов (код *-DEMO) — связи пропущены")
             return
-        batch1 = [m for m in meds if m.code in ("ASP-500-DEMO", "PAR-250-DEMO")]
-        if batch1:
-            s1.medications.add(*batch1)
-        batch2 = [m for m in meds if m.code == "RX-AMOX-DEMO"]
-        if batch2:
-            s2.medications.add(*batch2)
-        self.stdout.write(self.style.NOTICE("✓ Связи поставщик ↔ препарат обновлены"))
+        s1.medications.clear()
+        s2.medications.clear()
+        for i, m in enumerate(demo_meds):
+            (s1 if i % 2 == 0 else s2).medications.add(m)
+        self.stdout.write(self.style.NOTICE("✓ Связи поставщик ↔ демо-препараты обновлены"))

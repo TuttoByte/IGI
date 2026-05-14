@@ -23,7 +23,7 @@ _REVIEW_LOGIN_URL = reverse_lazy("accounts:login")
 
 class ReviewListView(FilterView):
     filterset_class = ReviewFilter
-    template_name = "reviews/review_list.html"
+    template_name = "frontend/reviews/review_list.html"
     paginate_by = 20
     context_object_name = "reviews"
 
@@ -40,7 +40,7 @@ class ReviewListView(FilterView):
 
 class ReviewDetailView(DetailView):
     model = Review
-    template_name = "reviews/review_detail.html"
+    template_name = "frontend/reviews/review_detail.html"
     context_object_name = "review"
     pk_url_kwarg = "pk"
 
@@ -53,7 +53,7 @@ class ReviewDetailView(DetailView):
 
 class ReviewCreateView(LoginRequiredMixin, FormView):
     form_class = ReviewCreateForm
-    template_name = "reviews/review_create.html"
+    template_name = "frontend/reviews/review_create.html"
     login_url = _REVIEW_LOGIN_URL
 
     def dispatch(self, request, *args: object, **kwargs: object):
@@ -91,7 +91,7 @@ class ReviewOwnerOrStaffMixin(UserPassesTestMixin):
 class ReviewUpdateView(LoginRequiredMixin, ReviewOwnerOrStaffMixin, UpdateView):
     model = Review
     form_class = ReviewUpdateForm
-    template_name = "reviews/review_form.html"
+    template_name = "frontend/reviews/review_form.html"
     pk_url_kwarg = "pk"
     login_url = _REVIEW_LOGIN_URL
 
@@ -116,7 +116,7 @@ class ReviewUpdateView(LoginRequiredMixin, ReviewOwnerOrStaffMixin, UpdateView):
 
 class ReviewDeleteView(LoginRequiredMixin, ReviewOwnerOrStaffMixin, DeleteView):
     model = Review
-    template_name = "reviews/review_confirm_delete.html"
+    template_name = "frontend/reviews/review_confirm_delete.html"
     success_url = reverse_lazy("reviews:review_list")
     login_url = _REVIEW_LOGIN_URL
 

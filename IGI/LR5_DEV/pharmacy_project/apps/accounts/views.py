@@ -1,7 +1,7 @@
 """
 Представления только на CBV: FormView / встроенные LoginView / LogoutView.
 
-Бизнес-сценарии не реализуются здесь — только HTTP-адаптация и вызов services.
+Панель сотрудников вынесена в apps.dashboard — здесь только публичные auth-страницы.
 """
 from __future__ import annotations
 
@@ -9,20 +9,17 @@ from django.contrib import messages
 from django.contrib.auth.views import LoginView, LogoutView
 from django.http import HttpResponse
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView, RedirectView
 
-from apps.accounts.decorators import role_required
 from apps.accounts.forms import CustomerRegistrationForm, StyledAuthenticationForm
-from apps.accounts.models import UserRole
 from apps.accounts.services import CustomerRegistrationDTO, RegistrationService
 
 
 class RegisterView(FormView):
     """Регистрация клиента: форма → DTO → RegistrationService."""
 
-    template_name = "accounts/register.html"
+    template_name = "frontend/accounts/register.html"
     form_class = CustomerRegistrationForm
     success_url = reverse_lazy("accounts:login")
 
@@ -44,7 +41,7 @@ class RegisterView(FormView):
 class AccountLoginView(LoginView):
     """Стандартный LoginView — не дублируем аутентификацию вручную."""
 
-    template_name = "accounts/login.html"
+    template_name = "frontend/accounts/login.html"
     redirect_authenticated_user = True
     authentication_form = StyledAuthenticationForm
 
@@ -55,29 +52,8 @@ class AccountLogoutView(LogoutView):
     next_page = reverse_lazy("core:home")
 
 
-@method_decorator(role_required(UserRole.ADMIN), name="dispatch")
-class AdminDashboardView(TemplateView):
-    """
-    Пример RBAC на CBV: доступ только у ADMIN.
+class LegacyPortalRedirectView(RedirectView):
+    """Старые URL ведут в единую панель /dashboard/ (доступ проверяется там)."""
 
-    EMPLOYEE/CUSTOMER получат 403; неаутентифицированный — редирект на LOGIN_URL.
-    """
-
-    template_name = "accounts/admin_dashboard.html"
-
-    def get_context_data(self, **kwargs: object) -> dict[str, object]:
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = _("Панель администратора")
-        return ctx
-
-
-@method_decorator(role_required(UserRole.ADMIN, UserRole.EMPLOYEE), name="dispatch")
-class StaffDashboardView(TemplateView):
-    """Зона сотрудников: ADMIN и EMPLOYEE (ролевой надмножество)."""
-
-    template_name = "accounts/staff_dashboard.html"
-
-    def get_context_data(self, **kwargs: object) -> dict[str, object]:
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = _("Панель сотрудника")
-        return ctx
+    pattern_name = "dashboard:index"
+    permanent = False

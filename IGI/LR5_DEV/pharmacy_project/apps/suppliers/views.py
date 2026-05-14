@@ -14,15 +14,15 @@ from django_filters.views import FilterView
 
 from apps.suppliers.filters import SupplierFilter
 from apps.suppliers.forms import SupplierForm
-from apps.suppliers.mixins import StaffRequiredMixin
+from apps.accounts.mixins import DashboardAccessMixin
 from apps.suppliers.models import Supplier
 from apps.suppliers import selectors as supplier_selectors
 from apps.suppliers.services import SupplierService
 
 
-class SupplierListView(StaffRequiredMixin, FilterView):
+class SupplierListView(DashboardAccessMixin, FilterView):
     filterset_class = SupplierFilter
-    template_name = "suppliers/supplier_list.html"
+    template_name = "dashboard/suppliers/supplier_list.html"
     paginate_by = 15
     context_object_name = "suppliers"
 
@@ -37,10 +37,10 @@ class SupplierListView(StaffRequiredMixin, FilterView):
         return ctx
 
 
-class SupplierDetailView(StaffRequiredMixin, DetailView):
+class SupplierDetailView(DashboardAccessMixin, DetailView):
     slug_field = "slug"
     slug_url_kwarg = "slug"
-    template_name = "suppliers/supplier_detail.html"
+    template_name = "dashboard/suppliers/supplier_detail.html"
     context_object_name = "supplier"
 
     def get_object(self, queryset=None):  # noqa: ARG002
@@ -52,9 +52,9 @@ class SupplierDetailView(StaffRequiredMixin, DetailView):
         return obj
 
 
-class SupplierCreateView(StaffRequiredMixin, CreateView):
+class SupplierCreateView(DashboardAccessMixin, CreateView):
     form_class = SupplierForm
-    template_name = "suppliers/supplier_form.html"
+    template_name = "dashboard/suppliers/supplier_form.html"
 
     def form_valid(self, form: SupplierForm) -> HttpResponse:
         self.object = SupplierService.save_from_form(form)
@@ -62,12 +62,12 @@ class SupplierCreateView(StaffRequiredMixin, CreateView):
         return HttpResponseRedirect(self.object.get_absolute_url())
 
 
-class SupplierUpdateView(StaffRequiredMixin, UpdateView):
+class SupplierUpdateView(DashboardAccessMixin, UpdateView):
     model = Supplier
     form_class = SupplierForm
     slug_field = "slug"
     slug_url_kwarg = "slug"
-    template_name = "suppliers/supplier_form.html"
+    template_name = "dashboard/suppliers/supplier_form.html"
     context_object_name = "supplier"
 
     def get_queryset(self):
@@ -79,11 +79,11 @@ class SupplierUpdateView(StaffRequiredMixin, UpdateView):
         return HttpResponseRedirect(self.get_object().get_absolute_url())
 
 
-class SupplierDeleteView(StaffRequiredMixin, DeleteView):
+class SupplierDeleteView(DashboardAccessMixin, DeleteView):
     model = Supplier
     slug_field = "slug"
     slug_url_kwarg = "slug"
-    template_name = "suppliers/supplier_confirm_delete.html"
+    template_name = "dashboard/suppliers/supplier_confirm_delete.html"
     success_url = reverse_lazy("suppliers:supplier_list")
 
     def delete(self, request, *args: object, **kwargs: object) -> HttpResponse:

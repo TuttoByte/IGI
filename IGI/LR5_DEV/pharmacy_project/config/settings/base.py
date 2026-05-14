@@ -35,6 +35,9 @@ INSTALLED_APPS = [
     "apps.reviews",
     "apps.suppliers",
     "apps.sales",
+    "apps.dashboard",
+    "apps.cabinet",
+    "apps.analytics",
 ]
 
 MIDDLEWARE = [

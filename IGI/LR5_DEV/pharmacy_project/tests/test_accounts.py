@@ -42,7 +42,7 @@ def test_admin_dashboard_forbidden_for_customer(client):
         address="addr",
     )
     assert client.login(username="cust", password="pw12345678") is True
-    response = client.get(reverse("accounts:admin_dashboard"))
+    response = client.get(reverse("accounts:admin_dashboard"), follow=True)
     assert response.status_code == 403
 
 
@@ -59,5 +59,6 @@ def test_staff_dashboard_allowed_for_employee(client):
         address="addr",
     )
     assert client.login(username="emp", password="pw12345678") is True
-    response = client.get(reverse("accounts:staff_dashboard"))
+    response = client.get(reverse("accounts:staff_dashboard"), follow=True)
     assert response.status_code == 200
+    assert "Панель" in response.content.decode()
