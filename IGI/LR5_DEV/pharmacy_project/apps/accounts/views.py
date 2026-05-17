@@ -30,6 +30,7 @@ class RegisterView(FormView):
             password=form.cleaned_data["password1"],
             birth_date=form.cleaned_data["birth_date"],
             phone=form.cleaned_data["phone"],
+            timezone=form.cleaned_data["timezone"],
             address=form.cleaned_data["address"],
             avatar=form.cleaned_data.get("avatar"),
         )

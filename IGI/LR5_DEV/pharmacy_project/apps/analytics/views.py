@@ -5,6 +5,7 @@ from typing import Any
 
 from django.views.generic import TemplateView
 
+from apps.analytics import charts as analytics_charts
 from apps.analytics import selectors as analytics_selectors
 from apps.accounts.mixins import DashboardAccessMixin
 
@@ -22,6 +23,6 @@ class PharmacyAnalyticsDashboardView(DashboardAccessMixin, TemplateView):
         ctx["by_department"] = by_department
         ctx["popular"] = popular
         ctx["by_day"] = by_day
-        ctx["chart_by_day"] = analytics_selectors.chart_payload_by_day(by_day)
-        ctx["chart_by_department"] = analytics_selectors.chart_payload_by_department(by_department)
+        ctx["sales_by_day_chart"] = analytics_charts.sales_by_day_png(by_day)
+        ctx["department_revenue_chart"] = analytics_charts.revenue_by_department_png(by_department)
         return ctx

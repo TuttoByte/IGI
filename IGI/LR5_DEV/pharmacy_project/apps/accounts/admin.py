@@ -43,6 +43,6 @@ class CustomUserAdmin(DjangoUserAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "phone", "birth_date", "created_at")
-    search_fields = ("user__username", "phone", "address")
+    list_display = ("user", "phone", "birth_date", "timezone", "created_at")
+    search_fields = ("user__username", "phone", "timezone", "address")
     readonly_fields = ("created_at", "updated_at")

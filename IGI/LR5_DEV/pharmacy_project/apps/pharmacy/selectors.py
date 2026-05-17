@@ -15,15 +15,6 @@ from apps.reviews.models import ReviewModerationStatus
 
 
 def medications_for_catalog() -> QuerySet[Medication]:
-    """
-    Каталог: FK-справочники подтягиваются одним JOIN на строку препарата.
-
-    prefetch_related('suppliers') — чтобы в шаблонах/списках не было N+1 при
-    обращении к поставщикам (отдельная M2M-таблица).
-
-    annotate(avg_review_rating, approved_reviews_count) — средняя оценка и число
-    опубликованных отзывов одним запросом (без подгрузки всех Review в Python).
-    """
     approved = Q(reviews__moderation_status=ReviewModerationStatus.APPROVED)
     return (
         Medication.objects.select_related("category", "department")
@@ -53,9 +44,6 @@ def departments_for_nav() -> QuerySet[Department]:
 
 
 def category_detail_with_medications(slug: str) -> Category | None:
-    """
-    Карточка категории: обратная связь O2M через prefetch — без N+1 по препаратам.
-    """
     qs = (
         Category.objects.filter(slug=slug)
         .prefetch_related(

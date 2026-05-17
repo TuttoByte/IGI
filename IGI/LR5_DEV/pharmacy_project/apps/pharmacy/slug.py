@@ -10,8 +10,6 @@ from django.utils.text import slugify
 class SlugService:
     """
     Единая точка для человекочитаемых URL.
-
-    Вызывается из Model.save до super(): не views и не forms определяют инвариант slug.
     """
 
     @staticmethod

@@ -1,16 +1,17 @@
 {% extends "frontend/base.html" %}
 {% block title %}{{ medication.name }}{% endblock %}
 {% block content %}
-<p><a class="btn btn-ghost" href="{% url 'pharmacy:medication_list' %}">← К каталогу</a></p>
-<section class="card animate-enter stagger" style="margin-top:1rem;">
+<p><a class="btn btn-ghost" href="{% url 'pharmacy:medication_list' %}">К каталогу</a></p>
+
+<section class="card">
     <span class="pill">{{ medication.code }}</span>
-    <h1 style="margin-top:0.75rem;">{{ medication.name }}</h1>
+    <h1>{{ medication.name }}</h1>
     <div class="detail-meta">
         <span class="pill">Цена: {{ medication.price }} BYN</span>
         <span class="pill">Остаток: {{ medication.quantity }}</span>
         <span class="pill">До {{ medication.expiration_date }}</span>
         {% if review_stats.approved_count %}
-            <span class="pill" title="Средняя оценка по опубликованным отзывам">{{ review_stats.avg_rating }}★ · {{ review_stats.approved_count }} отз.</span>
+            <span class="pill">{{ review_stats.avg_rating }}★ · {{ review_stats.approved_count }} отз.</span>
         {% else %}
             <span class="pill">Нет отзывов</span>
         {% endif %}
@@ -18,24 +19,31 @@
         {% if medication.is_expired %}<span class="pill pill-danger">просрочен</span>{% endif %}
         {% if medication.is_low_stock %}<span class="pill pill-warn">мало на складе</span>{% endif %}
     </div>
+
     <p class="lead">Производитель: <strong>{{ medication.manufacturer }}</strong></p>
     <p class="lead">
         Категория: <a href="{{ medication.category.get_absolute_url }}">{{ medication.category.name }}</a>
         · Отдел: <a href="{{ medication.department.get_absolute_url }}">{{ medication.department.name }}</a>
     </p>
+    <p class="actions">
+        <a class="btn" href="{% url 'pharmacy:external_lookup' %}?q={{ medication.name|urlencode }}">Проверить в справочниках</a>
+    </p>
+
     {% if medication.image %}
-        <p style="margin:1rem 0;"><img src="{{ medication.image.url }}" alt="" style="max-width:100%; max-height:320px; object-fit:contain; border-radius:6px; border:1px solid var(--border);"></p>
+        <p><img class="detail-image" src="{{ medication.image.url }}" alt=""></p>
     {% endif %}
-    <h2 style="font-size:1rem; color:var(--text-muted); margin:1.5rem 0 0.5rem;">Поставщики</h2>
+
+    <h2>Поставщики</h2>
     <ul class="med-list">
         {% for s in medication.suppliers.all %}
-            <li><a href="{{ s.get_absolute_url }}" style="color:var(--accent);">{{ s.name }}</a> · {{ s.contract_number }}</li>
+            <li><a href="{{ s.get_absolute_url }}">{{ s.name }}</a> · {{ s.contract_number }}</li>
         {% empty %}
             <li class="lead">Не указаны.</li>
         {% endfor %}
     </ul>
-    <h2 style="font-size:1rem; color:var(--text-muted); margin:1.5rem 0 0.5rem;">Отзывы</h2>
-    <p style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
+
+    <h2>Отзывы</h2>
+    <p class="actions">
         {% if user.is_authenticated %}
             {% if user_review %}
                 <a class="btn btn-ghost" href="{% url 'reviews:review_detail' user_review.pk %}">Мой отзыв</a>
@@ -44,25 +52,27 @@
                 <a class="btn btn-primary" href="{% url 'reviews:review_create' medication.slug %}">Оставить отзыв</a>
             {% endif %}
         {% else %}
-            <span class="lead" style="font-size:0.9rem;">Чтобы оставить отзыв, <a href="{% url 'accounts:login' %}">войдите</a>.</span>
+            <span class="lead">Чтобы оставить отзыв, <a href="{% url 'accounts:login' %}">войдите</a>.</span>
         {% endif %}
-        <a class="btn btn-ghost" href="{% url 'reviews:review_list' %}?medication={{ medication.pk }}">Все отзывы на препарат</a>
+        <a class="btn btn-ghost" href="{% url 'reviews:review_list' %}?medication={{ medication.pk }}">Все отзывы</a>
     </p>
+
     {% if latest_reviews %}
-        <ul class="med-list" style="margin-top:0.75rem;">
+        <ul class="med-list">
             {% for r in latest_reviews %}
-                <li class="lead" style="font-size:0.9rem;">
+                <li class="lead">
                     <strong>{{ r.rating }}★</strong> · {{ r.user.username }} · {{ r.created_at|date:"d.m.Y" }}
                     {% if r.text %} — {{ r.text|truncatewords:24 }}{% endif %}
                 </li>
             {% endfor %}
         </ul>
     {% else %}
-        <p class="lead" style="margin-top:0.5rem;">Пока нет опубликованных отзывов.</p>
+        <p class="lead">Пока нет опубликованных отзывов.</p>
     {% endif %}
-    <h2 style="font-size:1rem; color:var(--text-muted); margin:1.5rem 0 0.5rem;">Описание</h2>
-    <p class="lead" style="margin:0;">{{ medication.description|default:"—" }}</p>
-    <h2 style="font-size:1rem; color:var(--text-muted); margin:1.5rem 0 0.5rem;">Инструкция</h2>
-    <pre style="white-space: pre-wrap; font-family: inherit; color: var(--text-muted); margin:0; font-size:0.95rem;">{{ medication.instruction|default:"—" }}</pre>
+
+    <h2>Описание</h2>
+    <p class="lead">{{ medication.description|default:"—" }}</p>
+    <h2>Инструкция</h2>
+    <pre class="plain-pre">{{ medication.instruction|default:"—" }}</pre>
 </section>
 {% endblock %}

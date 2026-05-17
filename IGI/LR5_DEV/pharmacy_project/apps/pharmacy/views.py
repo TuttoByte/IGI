@@ -6,8 +6,10 @@
 from __future__ import annotations
 
 from django.views.generic import DetailView
+from django.views.generic import TemplateView
 from django_filters.views import FilterView
 
+from apps.pharmacy import external_apis
 from apps.pharmacy.filters import MedicationFilter
 from apps.pharmacy import selectors
 from apps.reviews import selectors as review_selectors
@@ -30,6 +32,21 @@ class MedicationListView(FilterView):
         q = self.request.GET.copy()
         q.pop("page", None)
         ctx["querystring"] = q.urlencode()
+        return ctx
+
+
+class ExternalDrugLookupView(TemplateView):
+    template_name = "frontend/pharmacy/external_lookup.html"
+
+    def get_context_data(self, **kwargs: object) -> dict[str, object]:
+        ctx = super().get_context_data(**kwargs)
+        query = self.request.GET.get("q", "").strip()
+        ctx["query"] = query
+        ctx["rxnorm_result"] = None
+        ctx["openfda_result"] = None
+        if query:
+            ctx["rxnorm_result"] = external_apis.lookup_rxnorm(query)
+            ctx["openfda_result"] = external_apis.lookup_openfda_label(query)
         return ctx
 
 

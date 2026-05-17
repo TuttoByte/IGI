@@ -19,12 +19,7 @@ class MedicationInventoryService:
     """Операции со складскими остатками в одной транзакции."""
 
     @staticmethod
-    @transaction.atomic
     def apply_stock_delta(medication_id: int, delta: int) -> Medication:
-        """
-        delta > 0 — приход, delta < 0 — расход.
-        select_for_update предотвращает гонки при параллельных продажах.
-        """
         qs = Medication.objects.select_for_update().select_related("category", "department")
         medication = qs.get(pk=medication_id)
         new_qty = int(medication.quantity) + int(delta)
@@ -42,7 +37,6 @@ class MedicationPricingService:
     """Пример отдельного сервиса под ценообразование (масштабирование по домену)."""
 
     @staticmethod
-    @transaction.atomic
     def set_price(medication_id: int, *, new_price: Decimal) -> Medication:
         if new_price < 0:
             raise ValidationError(_("Цена не может быть отрицательной."), code="invalid_price")

@@ -28,6 +28,7 @@ class CustomerRegistrationDTO:
     password: str
     birth_date: date
     phone: str
+    timezone: str
     address: str
     avatar: UploadedFile | None = None
 
@@ -52,6 +53,7 @@ class RegistrationService:
             user=user,
             birth_date=dto.birth_date,
             phone=dto.phone,
+            timezone=dto.timezone,
             address=dto.address,
             avatar=dto.avatar,
         )

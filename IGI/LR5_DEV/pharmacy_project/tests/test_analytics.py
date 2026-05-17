@@ -92,4 +92,7 @@ def test_analytics_dashboard_ok_for_staff(client):
     client.login(username="dash-admin", password="pw12345678")
     r = client.get(reverse("analytics:dashboard"))
     assert r.status_code == 200
-    assert "Дашборд" in r.content.decode()
+    body = r.content.decode()
+    assert "Дашборд" in body
+    assert "<script" not in body
+    assert "<canvas" not in body

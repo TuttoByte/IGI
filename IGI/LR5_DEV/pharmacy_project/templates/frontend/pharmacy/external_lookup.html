@@ -1,0 +1,54 @@
+{% extends "frontend/base.html" %}
+{% block title %}Внешние справочники{% endblock %}
+{% block content %}
+<h1>Внешние справочники</h1>
+
+<section class="card">
+    <form method="get" class="inline-form">
+        <label for="id_q">Название препарата</label>
+        <input id="id_q" type="search" name="q" value="{{ query }}" placeholder="aspirin">
+        <button class="btn btn-primary" type="submit">Найти</button>
+    </form>
+</section>
+
+{% if query %}
+<div class="content-grid">
+    <section class="card">
+        <h2>{{ rxnorm_result.source }}</h2>
+        <p class="lead">{{ rxnorm_result.status }}</p>
+        {% for record in rxnorm_result.records %}
+            <h3>{{ record.title }}</h3>
+            {% if record.subtitle %}<p class="lead">{{ record.subtitle }}</p>{% endif %}
+            <dl class="fact-list">
+                {% for label, value in record.facts %}
+                    <dt>{{ label }}</dt>
+                    <dd>{{ value }}</dd>
+                {% endfor %}
+            </dl>
+        {% empty %}
+            <p class="lead">Попробуйте латинское или английское название.</p>
+        {% endfor %}
+    </section>
+
+    <section class="card">
+        <h2>{{ openfda_result.source }}</h2>
+        <p class="lead">{{ openfda_result.status }}</p>
+        {% for record in openfda_result.records %}
+            <h3>{{ record.title }}</h3>
+            {% if record.subtitle %}<p class="lead">{{ record.subtitle }}</p>{% endif %}
+            <dl class="fact-list">
+                {% for label, value in record.facts %}
+                    <dt>{{ label }}</dt>
+                    <dd>{{ value }}</dd>
+                {% endfor %}
+            </dl>
+            {% if record.description %}
+                <p>{{ record.description|truncatewords:42 }}</p>
+            {% endif %}
+        {% empty %}
+            <p class="lead">Попробуйте латинское или английское название.</p>
+        {% endfor %}
+    </section>
+</div>
+{% endif %}
+{% endblock %}

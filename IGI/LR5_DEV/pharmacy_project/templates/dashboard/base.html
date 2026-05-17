@@ -21,9 +21,9 @@
         </nav>
         <div class="muted">
             {% if user.is_authenticated %}{{ user.username }}{% endif %}
-            <form method="post" action="{% url 'accounts:logout' %}" style="display:inline;margin-left:0.75rem;">
+            <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
                 {% csrf_token %}
-                <button type="submit" class="btn" style="font-size:0.8rem;">Выйти</button>
+                <button type="submit" class="btn btn-small">Выйти</button>
             </form>
         </div>
     </div>

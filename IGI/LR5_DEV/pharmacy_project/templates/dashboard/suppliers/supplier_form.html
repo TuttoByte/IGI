@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% block title %}{% if form.instance.pk %}Изменить{% else %}Новый{% endif %} поставщик{% endblock %}
 {% block content %}
-<section class="form-card animate-enter" style="max-width:640px;">
+<section class="narrow">
     <div class="card">
         <h1>{% if form.instance.pk %}Изменить поставщика{% else %}Новый поставщик{% endif %}</h1>
         <form method="post" novalidate>
@@ -13,7 +13,7 @@
                     {{ field }}
                 </div>
             {% endfor %}
-            <div class="hero-actions" style="margin-top:1rem;">
+            <div class="actions form-actions">
                 <button class="btn btn-primary" type="submit">Сохранить</button>
                 <a class="btn btn-ghost" href="{% if form.instance.pk %}{{ form.instance.get_absolute_url }}{% else %}{% url 'suppliers:supplier_list' %}{% endif %}">Отмена</a>
             </div>

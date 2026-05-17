@@ -17,6 +17,7 @@ def test_register_customer_creates_user_and_profile(client):
         "password2": "Str0ngPass!buyer",
         "birth_date": "1990-01-15",
         "phone": "+375 (29) 123-45-67",
+        "timezone": "Europe/Minsk",
         "address": "г. Минск",
     }
     response = client.post(url, payload, follow=False)
@@ -27,6 +28,7 @@ def test_register_customer_creates_user_and_profile(client):
     assert user.role == UserRole.CUSTOMER
     assert hasattr(user, "profile")
     assert user.profile.phone == "+375 (29) 123-45-67"
+    assert user.profile.timezone == "Europe/Minsk"
 
 
 @pytest.mark.django_db

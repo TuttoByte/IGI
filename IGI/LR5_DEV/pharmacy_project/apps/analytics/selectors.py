@@ -203,7 +203,7 @@ def pharmacy_sales_by_day(*, days: int = 30) -> list[SalesByDayRow]:
 
 
 def chart_payload_by_day(rows: list[SalesByDayRow]) -> dict[str, Any]:
-    """Сериализация для Chart.js (примитивы JSON)."""
+    """Сериализация рядов в простые JSON-совместимые структуры."""
     return {
         "labels": [r.day.isoformat() for r in rows],
         "revenue": [float(r.revenue) for r in rows],

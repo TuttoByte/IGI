@@ -9,7 +9,7 @@
     <a class="btn btn-primary" href="{% url 'suppliers:supplier_create' %}">+ Новый поставщик</a>
 </div>
 
-<section class="filters-panel animate-enter">
+<section>
     <div class="card">
         <form method="get">
             {{ filter.form.as_p }}
@@ -21,7 +21,7 @@
     </div>
 </section>
 
-<section class="card-grid stagger">
+<section class="card-grid">
     {% for s in suppliers %}
         <article class="card">
             <h2 style="font-size:1.1rem; margin:0 0 0.35rem;">
@@ -31,7 +31,7 @@
             <p class="lead" style="font-size:0.8rem; margin:0.5rem 0 0;">
                 <span class="pill">препаратов: {{ s.medication_count }}</span>
             </p>
-            <div class="hero-actions" style="margin-top:1rem;">
+            <div class="actions form-actions">
                 <a class="btn btn-ghost" href="{% url 'suppliers:supplier_update' s.slug %}">Изменить</a>
                 <a class="btn btn-ghost" href="{% url 'suppliers:supplier_delete' s.slug %}">Удалить</a>
             </div>
@@ -42,7 +42,7 @@
 </section>
 
 {% if is_paginated %}
-<nav class="card animate-enter" style="margin-top:1.25rem; padding:1rem 1.25rem; display:flex; flex-wrap:wrap; align-items:center; gap:1rem; justify-content:center;">
+<nav class="card pagination">
     {% if page_obj.has_previous %}
         <a class="btn btn-ghost" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">← Назад</a>
     {% endif %}

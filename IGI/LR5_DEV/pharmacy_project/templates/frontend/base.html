@@ -15,6 +15,7 @@
         <nav aria-label="Сайт">
             <a href="{% url 'core:home' %}" class="{% if request.resolver_match.namespace == 'core' %}nav-active{% endif %}">Главная</a>
             <a href="{% url 'pharmacy:medication_list' %}" class="{% if request.resolver_match.namespace == 'pharmacy' %}nav-active{% endif %}">Каталог</a>
+            <a href="{% url 'pharmacy:external_lookup' %}">Справочники</a>
             <a href="{% url 'reviews:review_list' %}" class="{% if request.resolver_match.namespace == 'reviews' %}nav-active{% endif %}">Отзывы</a>
             {% if user.is_authenticated and user.role == 'CUSTOMER' %}
                 <a href="{% url 'frontend:home' %}" class="{% if request.resolver_match.namespace == 'frontend' %}nav-active{% endif %}">Кабинет</a>
@@ -27,9 +28,9 @@
         <div class="muted">
             {% if user.is_authenticated %}
                 {{ user.username }}
-                <form method="post" action="{% url 'accounts:logout' %}" style="display:inline;margin-left:0.75rem;">
+                <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
                     {% csrf_token %}
-                    <button type="submit" class="btn" style="font-size:0.8rem;">Выйти</button>
+                    <button type="submit" class="btn btn-small">Выйти</button>
                 </form>
             {% else %}
                 гость

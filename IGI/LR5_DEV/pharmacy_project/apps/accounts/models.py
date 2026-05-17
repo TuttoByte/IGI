@@ -73,6 +73,7 @@ class Profile(models.Model):
         max_length=20,
         validators=[validate_belarus_mobile_phone],
     )
+    timezone = models.CharField(_("часовой пояс"), max_length=64, default=settings.TIME_ZONE)
     address = models.TextField(_("адрес"))
     created_at = models.DateTimeField(_("создан"), auto_now_add=True)
     updated_at = models.DateTimeField(_("обновлён"), auto_now=True)

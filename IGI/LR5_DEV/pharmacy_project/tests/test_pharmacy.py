@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 
 from apps.pharmacy.models import Category, Department, Medication
+from apps.pharmacy.external_apis import ExternalApiRecord, ExternalApiResult
 from apps.pharmacy.services import MedicationInventoryService
 
 
@@ -48,6 +49,33 @@ def test_medication_list_search_and_ordering(client):
 
     r2 = client.get(url, {"ordering": "price"})
     assert r2.status_code == 200
+
+
+@pytest.mark.django_db
+def test_external_lookup_page_renders_two_sources(client, monkeypatch):
+    def fake_rxnorm(query):
+        return ExternalApiResult(
+            source="RxNorm / RxNav",
+            query=query,
+            status="Данные получены.",
+            records=(ExternalApiRecord(title="Aspirin", facts=(("RxCUI", "1191"),)),),
+        )
+
+    def fake_openfda(query):
+        return ExternalApiResult(
+            source="openFDA Drug Label",
+            query=query,
+            status="Данные получены.",
+            records=(ExternalApiRecord(title="Aspirin", facts=(("NDC", "0000"),)),),
+        )
+
+    monkeypatch.setattr("apps.pharmacy.views.external_apis.lookup_rxnorm", fake_rxnorm)
+    monkeypatch.setattr("apps.pharmacy.views.external_apis.lookup_openfda_label", fake_openfda)
+    response = client.get(reverse("pharmacy:external_lookup"), {"q": "aspirin"})
+    body = response.content.decode()
+    assert response.status_code == 200
+    assert "RxNorm / RxNav" in body
+    assert "openFDA Drug Label" in body
 
 
 @pytest.mark.django_db

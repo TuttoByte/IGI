@@ -102,6 +102,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Домен аптеки: порог «мало на складе» для Medication.is_low_stock()
 PHARMACY_LOW_STOCK_THRESHOLD = 10
 
+# Внешние справочники лекарств. openFDA работает без ключа на малых лимитах,
+# но ключ можно добавить в .env для большего дневного лимита.
+OPENFDA_API_KEY = os.environ.get("OPENFDA_API_KEY", "")
+EXTERNAL_API_TIMEOUT = float(os.environ.get("EXTERNAL_API_TIMEOUT", "3"))
+
 # Кастомный пользователь (должен быть объявлен до первых миграций с User).
 AUTH_USER_MODEL = "accounts.CustomUser"
 
