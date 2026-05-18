@@ -1,0 +1,83 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+{% block title %}Аналитика{% endblock %}
+{% block content %}
+<h1>Дашборд аптеки</h1>
+<p class="lead">Показатели по проведённым продажам.</p>
+
+<section class="summary-grid">
+    <div class="metric">
+        <span>Общая выручка</span>
+        <strong>{{ summary.total_revenue|floatformat:2 }} BYN</strong>
+    </div>
+    <div class="metric">
+        <span>Средний чек</span>
+        <strong>{% if summary.average_check is not None %}{{ summary.average_check|floatformat:2 }} BYN{% else %}—{% endif %}</strong>
+    </div>
+    <div class="metric">
+        <span>Чеков проведено</span>
+        <strong>{{ summary.completed_sales_count|intcomma }}</strong>
+    </div>
+</section>
+
+<div class="content-grid">
+    <section class="card">
+        <h2>Продажи по дням</h2>
+        {% if sales_by_day_chart %}
+            <img class="chart-img" src="{{ sales_by_day_chart }}" alt="График выручки по дням">
+        {% else %}
+            <p class="lead">Нет данных по продажам за 30 дней.</p>
+        {% endif %}
+    </section>
+    <section class="card">
+        <h2>Выручка по отделам</h2>
+        {% if department_revenue_chart %}
+            <img class="chart-img" src="{{ department_revenue_chart }}" alt="График выручки по отделам">
+        {% else %}
+            <p class="lead">Нет данных по отделам.</p>
+        {% endif %}
+    </section>
+</div>
+
+<section class="card">
+    <h2>Популярные медикаменты</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Препарат</th>
+                <th>Код</th>
+                <th>Шт.</th>
+                <th>Выручка</th>
+                <th>Строк</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in popular %}
+                <tr>
+                    <td>{{ m.medication_name }}</td>
+                    <td><span class="pill">{{ m.medication_code }}</span></td>
+                    <td>{{ m.units_sold|intcomma }}</td>
+                    <td>{{ m.revenue|floatformat:2 }}</td>
+                    <td>{{ m.sale_lines|intcomma }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="lead">Нет данных по продажам.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="card">
+    <h2>По отделам</h2>
+    <ul class="plain-list">
+        {% for d in by_department %}
+            <li>
+                <span>{{ d.department_name }}</span>
+                <span><strong>{{ d.revenue|floatformat:2 }} BYN</strong> · {{ d.line_count|intcomma }} строк</span>
+            </li>
+        {% empty %}
+            <li class="lead">Нет продаж по отделам.</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

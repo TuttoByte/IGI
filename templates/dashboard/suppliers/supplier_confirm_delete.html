@@ -1,0 +1,15 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Удалить {{ object.name }}{% endblock %}
+{% block content %}
+<section class="card narrow">
+    <h1>Удалить поставщика?</h1>
+    <p class="lead"><strong>{{ object.name }}</strong> ({{ object.contract_number }})</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="actions">
+            <button class="btn btn-danger" type="submit">Да, удалить</button>
+            <a class="btn btn-ghost" href="{{ object.get_absolute_url }}">Отмена</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

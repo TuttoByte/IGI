@@ -1,0 +1,13 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Обзор{% endblock %}
+{% block content %}
+<h1>Панель аптеки</h1>
+<p class="muted">Разделы для ролей ADMIN и EMPLOYEE.</p>
+<ul>
+    <li><a href="{% url 'sales:sale_list' %}">Продажи</a></li>
+    <li><a href="{% url 'sales:sale_create' %}">Новая продажа</a></li>
+    <li><a href="{% url 'suppliers:supplier_list' %}">Поставщики</a></li>
+    <li><a href="{% url 'analytics:dashboard' %}">Аналитика</a></li>
+</ul>
+<p class="muted" style="margin-top:1.5rem;"><a href="{% url 'core:home' %}">← На сайт</a></p>
+{% endblock %}

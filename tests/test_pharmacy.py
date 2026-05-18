@@ -1,0 +1,121 @@
+from datetime import date, timedelta
+from decimal import Decimal
+
+import pytest
+from django.core.exceptions import ValidationError
+from django.urls import reverse
+
+from apps.pharmacy.models import Category, Department, Medication
+from apps.pharmacy.external_apis import ExternalApiRecord, ExternalApiResult
+from apps.pharmacy.services import MedicationInventoryService
+
+
+@pytest.mark.django_db
+def test_medication_list_search_and_ordering(client):
+    cat = Category.objects.create(name="Обезболивающие", slug="pain")
+    dep = Department.objects.create(name="Зал А", slug="hall-a", floor=2)
+    Medication.objects.create(
+        code="ASP-1",
+        name="Аспирин таблетки",
+        slug="aspirin-tab",
+        description="Классика",
+        instruction="По назначению врача",
+        manufacturer="ОАО Фарм",
+        price=Decimal("15.00"),
+        quantity=50,
+        expiration_date=date.today() + timedelta(days=400),
+        category=cat,
+        department=dep,
+    )
+    Medication.objects.create(
+        code="PAR-1",
+        name="Парацетамол",
+        slug="paracetamol",
+        description="Дешёвый жаропонижающий",
+        instruction="",
+        manufacturer="ОАО Фарм",
+        price=Decimal("5.00"),
+        quantity=200,
+        expiration_date=date.today() + timedelta(days=200),
+        category=cat,
+        department=dep,
+    )
+
+    url = reverse("pharmacy:medication_list")
+    r = client.get(url, {"search": "Аспирин"})
+    assert r.status_code == 200
+    assert "Аспирин" in r.content.decode()
+    assert "Парацетамол" not in r.content.decode()
+
+    r2 = client.get(url, {"ordering": "price"})
+    assert r2.status_code == 200
+
+
+@pytest.mark.django_db
+def test_external_lookup_page_renders_two_sources(client, monkeypatch):
+    def fake_rxnorm(query):
+        return ExternalApiResult(
+            source="RxNorm / RxNav",
+            query=query,
+            status="Данные получены.",
+            records=(ExternalApiRecord(title="Aspirin", facts=(("RxCUI", "1191"),)),),
+        )
+
+    def fake_openfda(query):
+        return ExternalApiResult(
+            source="openFDA Drug Label",
+            query=query,
+            status="Данные получены.",
+            records=(ExternalApiRecord(title="Aspirin", facts=(("NDC", "0000"),)),),
+        )
+
+    monkeypatch.setattr("apps.pharmacy.views.external_apis.lookup_rxnorm", fake_rxnorm)
+    monkeypatch.setattr("apps.pharmacy.views.external_apis.lookup_openfda_label", fake_openfda)
+    response = client.get(reverse("pharmacy:external_lookup"), {"q": "aspirin"})
+    body = response.content.decode()
+    assert response.status_code == 200
+    assert "RxNorm / RxNav" in body
+    assert "openFDA Drug Label" in body
+
+
+@pytest.mark.django_db
+def test_inventory_service_apply_delta():
+    cat = Category.objects.create(name="Витамины", slug="vit")
+    dep = Department.objects.create(name="Зал Б", slug="hall-b", floor=1)
+    m = Medication.objects.create(
+        code="VIT-C",
+        name="Витамин C",
+        slug="vit-c",
+        description="",
+        instruction="",
+        manufacturer="Импорт",
+        price=Decimal("20.00"),
+        quantity=10,
+        expiration_date=date.today() + timedelta(days=100),
+        category=cat,
+        department=dep,
+    )
+    MedicationInventoryService.apply_stock_delta(m.pk, -3)
+    m.refresh_from_db()
+    assert m.quantity == 7
+
+
+@pytest.mark.django_db
+def test_inventory_insufficient_raises_validation_error():
+    cat = Category.objects.create(name="V2", slug="v2")
+    dep = Department.objects.create(name="Z2", slug="z2", floor=1)
+    m = Medication.objects.create(
+        code="VIT-D",
+        name="Vit D",
+        slug="vit-d",
+        description="",
+        instruction="",
+        manufacturer="X",
+        price=Decimal("20.00"),
+        quantity=2,
+        expiration_date=date.today() + timedelta(days=100),
+        category=cat,
+        department=dep,
+    )
+    with pytest.raises(ValidationError):
+        MedicationInventoryService.apply_stock_delta(m.pk, -5)

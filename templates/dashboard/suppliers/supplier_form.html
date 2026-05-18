@@ -1,0 +1,23 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{% if form.instance.pk %}Изменить{% else %}Новый{% endif %} поставщик{% endblock %}
+{% block content %}
+<section class="narrow">
+    <div class="card">
+        <h1>{% if form.instance.pk %}Изменить поставщика{% else %}Новый поставщик{% endif %}</h1>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field.errors }}
+                    {{ field }}
+                </div>
+            {% endfor %}
+            <div class="actions form-actions">
+                <button class="btn btn-primary" type="submit">Сохранить</button>
+                <a class="btn btn-ghost" href="{% if form.instance.pk %}{{ form.instance.get_absolute_url }}{% else %}{% url 'suppliers:supplier_list' %}{% endif %}">Отмена</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Панель{% endblock %} · dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/shell.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<header>
+    <div class="header-inner">
+        <a class="brand" href="{% url 'dashboard:index' %}">Панель</a>
+        <nav aria-label="Панель">
+            <a href="{% url 'dashboard:index' %}" class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.namespace == 'dashboard' %}nav-active{% endif %}">Обзор</a>
+            <a href="{% url 'sales:sale_list' %}" class="{% if request.resolver_match.namespace == 'sales' %}nav-active{% endif %}">Продажи</a>
+            <a href="{% url 'suppliers:supplier_list' %}" class="{% if request.resolver_match.namespace == 'suppliers' %}nav-active{% endif %}">Поставщики</a>
+            <a href="{% url 'analytics:dashboard' %}" class="{% if request.resolver_match.namespace == 'analytics' %}nav-active{% endif %}">Аналитика</a>
+            <a href="/admin/">Django admin</a>
+        </nav>
+        <div class="muted">
+            {% if user.is_authenticated %}{{ user.username }}{% endif %}
+            <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-small">Выйти</button>
+            </form>
+        </div>
+    </div>
+</header>
+<main>
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+<footer>Зона сотрудников · не смешивать с публичным сайтом</footer>
+</body>
+</html>
