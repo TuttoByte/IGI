@@ -13,12 +13,17 @@
     <div class="header-inner">
         <a class="brand" href="{% url 'core:home' %}">Аптека</a>
         <nav aria-label="Сайт">
-            <a href="{% url 'core:home' %}" class="{% if request.resolver_match.namespace == 'core' %}nav-active{% endif %}">Главная</a>
-            <a href="{% url 'pharmacy:medication_list' %}" class="{% if request.resolver_match.namespace == 'pharmacy' %}nav-active{% endif %}">Каталог</a>
-            <a href="{% url 'pharmacy:external_lookup' %}">Справочники</a>
+            <a href="{% url 'core:home' %}" class="{% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'home' %}nav-active{% endif %}">Главная</a>
+            <a href="{% url 'core:news_list' %}" class="{% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'news_list' or request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'news_detail' %}nav-active{% endif %}">Новости</a>
+            <a href="{% url 'pharmacy:medication_list' %}" class="{% if request.resolver_match.namespace == 'pharmacy' and request.resolver_match.url_name != 'external_lookup' %}nav-active{% endif %}">Каталог</a>
+            <a href="{% url 'pharmacy:external_lookup' %}" class="{% if request.resolver_match.namespace == 'pharmacy' and request.resolver_match.url_name == 'external_lookup' %}nav-active{% endif %}">Справочники</a>
             <a href="{% url 'reviews:review_list' %}" class="{% if request.resolver_match.namespace == 'reviews' %}nav-active{% endif %}">Отзывы</a>
-            {% if user.is_authenticated and user.role == 'CUSTOMER' %}
+            <a href="{% url 'core:contacts' %}" class="{% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'contacts' %}nav-active{% endif %}">Контакты</a>
+            {% if user.is_authenticated %}
                 <a href="{% url 'frontend:home' %}" class="{% if request.resolver_match.namespace == 'frontend' %}nav-active{% endif %}">Кабинет</a>
+                {% if user.role == 'ADMIN' or user.role == 'EMPLOYEE' %}
+                    <a href="{% url 'dashboard:index' %}">Панель</a>
+                {% endif %}
             {% endif %}
             {% if not user.is_authenticated %}
                 <a href="{% url 'accounts:login' %}">Вход</a>

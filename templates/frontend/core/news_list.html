@@ -1,0 +1,44 @@
+{% extends "frontend/base.html" %}
+{% block title %}Новости{% endblock %}
+{% block content %}
+<div class="med-head">
+    <div>
+        <h1>Новости аптеки</h1>
+        <p class="lead">Обновления каталога, полезные материалы и важная информация для покупателей.</p>
+    </div>
+</div>
+
+{% if articles %}
+    <div class="card-grid">
+        {% for article in articles %}
+            <article class="card news-card">
+                <a href="{{ article.get_absolute_url }}">
+                    <img class="news-thumb" src="{{ article.image.url }}" alt="{{ article.title }}">
+                </a>
+                <p class="muted">{{ article.published_at|date:"d.m.Y" }}</p>
+                <h2><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+                <p>{{ article.lead }}</p>
+                <a class="btn" href="{{ article.get_absolute_url }}">Читать</a>
+            </article>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <div class="pagination">
+            <span class="muted">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+            <span>
+                {% if page_obj.has_previous %}
+                    <a class="btn" href="?page={{ page_obj.previous_page_number }}">Назад</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a class="btn" href="?page={{ page_obj.next_page_number }}">Вперёд</a>
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="card">
+        <p class="muted">Новости скоро появятся.</p>
+    </div>
+{% endif %}
+{% endblock %}

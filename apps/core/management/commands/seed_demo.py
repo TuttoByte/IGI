@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import re
 from datetime import date, timedelta
 from decimal import Decimal
@@ -14,9 +15,11 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone
 from PIL import Image
 
 from apps.accounts.models import Profile, UserRole
+from apps.core.models import EmployeeContact, NewsArticle
 from apps.pharmacy.models import Category, Department, Medication
 from apps.suppliers.models import Supplier
 
@@ -30,6 +33,15 @@ def _placeholder_jpeg_bytes(rgb: tuple[int, int, int]) -> bytes:
     return buf.getvalue()
 
 
+def _stable_color(text: str) -> tuple[int, int, int]:
+    digest = hashlib.sha256(text.encode("utf-8")).digest()
+    return (
+        70 + digest[0] % 130,
+        70 + digest[1] % 130,
+        70 + digest[2] % 130,
+    )
+
+
 class Command(BaseCommand):
     help = "Создаёт demo_admin, demo_client, демо-каталог с изображениями и поставщиков (идемпотентно)."
 
@@ -38,6 +50,7 @@ class Command(BaseCommand):
             self._seed_users()
             self._seed_catalog()
             self._seed_suppliers()
+            self._seed_public_content()
         self.stdout.write(
             self.style.SUCCESS(
                 "\n╔════════════════════════════════════════════╗\n"
@@ -241,6 +254,21 @@ class Command(BaseCommand):
         safe = re.sub(r"[^a-z0-9_-]+", "-", med.slug.lower())[:80] or "med"
         med.image.save(f"{safe}.jpg", ContentFile(data), save=True)
 
+    def _attach_required_image_if_missing(
+        self,
+        obj: object,
+        *,
+        field_name: str,
+        slug: str,
+        rgb: tuple[int, int, int],
+    ) -> None:
+        field = getattr(obj, field_name)
+        if field:
+            return
+        data = _placeholder_jpeg_bytes(rgb)
+        safe = re.sub(r"[^a-z0-9_-]+", "-", slug.lower())[:80] or "image"
+        field.save(f"{safe}.jpg", ContentFile(data), save=True)
+
     def _seed_catalog(self) -> None:
         today = date.today()
         specs = self._demo_med_specs(today)
@@ -257,9 +285,15 @@ class Command(BaseCommand):
             else:
                 updated += 1
             self._attach_image_if_missing(med, color)
+        filled_missing = 0
+        for med in Medication.objects.filter(image="").order_by("code", "name"):
+            self._attach_image_if_missing(med, _stable_color(med.slug or med.name))
+            filled_missing += 1
         self.stdout.write(
             self.style.NOTICE(
-                f"✓ Каталог: создано {created}, обновлено по коду {updated}; изображения без фото — добавлены."
+                "✓ Каталог: "
+                f"создано {created}, обновлено по коду {updated}; "
+                f"изображения без фото — добавлены ({filled_missing} старых записей)."
             )
         )
 
@@ -296,3 +330,108 @@ class Command(BaseCommand):
         for i, m in enumerate(demo_meds):
             (s1 if i % 2 == 0 else s2).medications.add(m)
         self.stdout.write(self.style.NOTICE("✓ Связи поставщик ↔ демо-препараты обновлены"))
+
+    def _seed_public_content(self) -> None:
+        now = timezone.now()
+        news_specs = [
+            {
+                "title": "Новый раздел с аптечными новостями",
+                "slug": "novyy-razdel-s-aptechnymi-novostyami",
+                "lead": "Публикуем обновления ассортимента, полезные напоминания и важные объявления.",
+                "content": (
+                    "В новостях аптеки будут появляться материалы о поступлениях, сезонных товарах "
+                    "и изменениях в работе отделов.\n\nВсе публикации сопровождаются изображениями, "
+                    "чтобы лента оставалась наглядной для покупателей."
+                ),
+                "published_at": now - timedelta(days=1),
+                "image_color": (42, 125, 96),
+            },
+            {
+                "title": "Сезонная проверка домашней аптечки",
+                "slug": "sezonnaya-proverka-domashney-aptechki",
+                "lead": "Проверьте сроки годности базовых средств и пополните запасы заранее.",
+                "content": (
+                    "Перед сменой сезона полезно пересмотреть домашнюю аптечку: убрать просроченные "
+                    "препараты, проверить жаропонижающие, перевязочные материалы и средства для ЖКТ.\n\n"
+                    "Если лекарство требует рецепта, уточните наличие и правила отпуска у сотрудника аптеки."
+                ),
+                "published_at": now - timedelta(days=4),
+                "image_color": (58, 96, 170),
+            },
+            {
+                "title": "Как читать карточку препарата в каталоге",
+                "slug": "kak-chitat-kartochku-preparata-v-kataloge",
+                "lead": "В карточке видны остатки, отдел, срок годности, поставщики и отзывы покупателей.",
+                "content": (
+                    "Каталог помогает быстро найти препарат по названию, коду, производителю или категории. "
+                    "На странице препарата отображаются цена, остаток, отдел и отметка о рецептурном отпуске.\n\n"
+                    "Отзывы проходят модерацию, поэтому публично показываются только опубликованные записи."
+                ),
+                "published_at": now - timedelta(days=7),
+                "image_color": (180, 94, 55),
+            },
+        ]
+
+        for spec in news_specs:
+            color = spec.pop("image_color")
+            assert isinstance(color, tuple)
+            slug = str(spec["slug"])
+            defaults = {key: value for key, value in spec.items() if key != "slug"}
+            article, _created = NewsArticle.objects.update_or_create(slug=slug, defaults=defaults)
+            self._attach_required_image_if_missing(
+                article,
+                field_name="image",
+                slug=slug,
+                rgb=color,
+            )
+
+        employee_specs = [
+            {
+                "full_name": "Иванова Мария Сергеевна",
+                "slug": "ivanova-mariya-sergeevna",
+                "position": "Заведующая аптекой",
+                "phone": "+375 (29) 700-10-01",
+                "email": "manager@demo.local",
+                "work_calendar": "Пн-Пт: 09:00-17:00\nСб: консультации по записи\nВс: выходной",
+                "note": "Отвечает за работу торгового зала, поставки и вопросы по обслуживанию.",
+                "sort_order": 10,
+                "image_color": (86, 126, 164),
+            },
+            {
+                "full_name": "Петров Алексей Викторович",
+                "slug": "petrov-aleksey-viktorovich",
+                "position": "Фармацевт рецептурного отдела",
+                "phone": "+375 (29) 700-10-02",
+                "email": "rx@demo.local",
+                "work_calendar": "Пн-Ср: 10:00-18:00\nЧт-Пт: 12:00-20:00\nСб-Вс: выходной",
+                "note": "Помогает с наличием рецептурных препаратов и подбором аналогов по назначению врача.",
+                "sort_order": 20,
+                "image_color": (117, 140, 78),
+            },
+            {
+                "full_name": "Смирнова Анна Игоревна",
+                "slug": "smirnova-anna-igorevna",
+                "position": "Консультант зала",
+                "phone": "+375 (29) 700-10-03",
+                "email": "help@demo.local",
+                "work_calendar": "Пн-Пт: 11:00-19:00\nСб: 10:00-16:00\nВс: выходной",
+                "note": "Подсказывает по навигации в каталоге, отделам и правилам оформления отзывов.",
+                "sort_order": 30,
+                "image_color": (165, 106, 130),
+            },
+        ]
+
+        for spec in employee_specs:
+            color = spec.pop("image_color")
+            assert isinstance(color, tuple)
+            slug = str(spec["slug"])
+            defaults = {key: value for key, value in spec.items() if key != "slug"}
+            employee, _created = EmployeeContact.objects.update_or_create(slug=slug, defaults=defaults)
+            self._attach_required_image_if_missing(
+                employee,
+                field_name="photo",
+                slug=slug,
+                rgb=color,
+            )
+
+        self.stdout.write(self.style.NOTICE("✓ Публичные новости и контакты сотрудников обновлены"))

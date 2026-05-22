@@ -6,7 +6,9 @@
     <p class="muted">Каталог и отзывы доступны всем. Вход для клиентов и сотрудников.</p>
     <p style="margin-top:1rem;">
         <a class="btn btn-primary" href="{% url 'pharmacy:medication_list' %}">Каталог</a>
+        <a class="btn" href="{% url 'core:news_list' %}">Новости</a>
         <a class="btn" href="{% url 'reviews:review_list' %}">Отзывы</a>
+        <a class="btn" href="{% url 'core:contacts' %}">Контакты</a>
         <a class="btn" href="{% url 'accounts:login' %}">Вход</a>
     </p>
 </div>

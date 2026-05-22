@@ -1,0 +1,45 @@
+{% extends "frontend/base.html" %}
+{% block title %}Контакты{% endblock %}
+{% block content %}
+<div class="med-head">
+    <div>
+        <h1>Контакты</h1>
+        <p class="lead">Сотрудники аптеки, телефоны и календарь работы.</p>
+    </div>
+</div>
+
+{% if employees %}
+    <div class="employee-grid">
+        {% for employee in employees %}
+            <article class="card employee-card">
+                <img class="employee-photo" src="{{ employee.photo.url }}" alt="{{ employee.full_name }}">
+                <div class="employee-info">
+                    <h2>{{ employee.full_name }}</h2>
+                    <p class="muted">{{ employee.position }}</p>
+                    {% if employee.phone or employee.email %}
+                        <dl class="fact-list">
+                            {% if employee.phone %}
+                                <dt>Телефон</dt>
+                                <dd><a href="tel:{{ employee.phone }}">{{ employee.phone }}</a></dd>
+                            {% endif %}
+                            {% if employee.email %}
+                                <dt>Email</dt>
+                                <dd><a href="mailto:{{ employee.email }}">{{ employee.email }}</a></dd>
+                            {% endif %}
+                        </dl>
+                    {% endif %}
+                    <h3>Календарь работы</h3>
+                    <pre class="plain-pre employee-calendar">{{ employee.work_calendar }}</pre>
+                    {% if employee.note %}
+                        <p>{{ employee.note }}</p>
+                    {% endif %}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card">
+        <p class="muted">Контакты сотрудников скоро появятся.</p>
+    </div>
+{% endif %}
+{% endblock %}

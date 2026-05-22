@@ -1,7 +1,50 @@
 {% extends "frontend/base.html" %}
 {% block title %}Кабинет{% endblock %}
 {% block content %}
-<h1>Личный кабинет</h1>
-<p class="muted">Раздел только для клиентов (роль CUSTOMER).</p>
-<p><a href="{% url 'pharmacy:medication_list' %}">Каталог</a> · <a href="{% url 'reviews:review_list' %}">Отзывы</a></p>
+<div class="med-head">
+    <div>
+        <h1>Личный кабинет</h1>
+        <p class="lead">Профиль пользователя {{ user.username }}.</p>
+    </div>
+</div>
+
+<div class="content-grid">
+    <section class="card">
+        <h2>Данные профиля</h2>
+        <dl class="fact-list">
+            <dt>Логин</dt>
+            <dd>{{ user.username }}</dd>
+            <dt>Роль</dt>
+            <dd>{{ user.get_role_display }}</dd>
+            {% if profile %}
+                <dt>Телефон</dt>
+                <dd>{{ profile.phone }}</dd>
+                <dt>Адрес</dt>
+                <dd>{{ profile.address }}</dd>
+                <dt>Дата рождения</dt>
+                <dd>{{ profile.birth_date|date:"d.m.Y" }}</dd>
+            {% else %}
+                <dt>Профиль</dt>
+                <dd class="muted">Расширенный профиль пока не заполнен.</dd>
+            {% endif %}
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2>Календарик даты рождения</h2>
+        {% if birth_calendar %}
+            <pre class="plain-pre birth-calendar">{{ birth_calendar }}</pre>
+        {% else %}
+            <p class="muted">Дата рождения не указана.</p>
+        {% endif %}
+    </section>
+</div>
+
+<p class="actions">
+    <a class="btn" href="{% url 'pharmacy:medication_list' %}">Каталог</a>
+    <a class="btn" href="{% url 'reviews:review_list' %}">Отзывы</a>
+    {% if user.role == 'ADMIN' or user.role == 'EMPLOYEE' %}
+        <a class="btn" href="{% url 'dashboard:index' %}">Панель</a>
+    {% endif %}
+</p>
 {% endblock %}

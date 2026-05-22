@@ -1,0 +1,16 @@
+{% extends "frontend/base.html" %}
+{% block title %}{{ article.title }}{% endblock %}
+{% block content %}
+<article class="card">
+    <p class="muted">{{ article.published_at|date:"d.m.Y H:i" }}</p>
+    <h1>{{ article.title }}</h1>
+    <img class="news-detail-image" src="{{ article.image.url }}" alt="{{ article.title }}">
+    <p class="lead">{{ article.lead }}</p>
+    <div class="text-content">
+        {{ article.content|linebreaks }}
+    </div>
+    <p class="form-actions">
+        <a class="btn" href="{% url 'core:news_list' %}">Все новости</a>
+    </p>
+</article>
+{% endblock %}
