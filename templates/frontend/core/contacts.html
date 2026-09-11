@@ -1,45 +1,106 @@
 {% extends "frontend/base.html" %}
+
 {% block title %}Контакты{% endblock %}
+{% block meta_description %}Контакты аптеки «Здоровье»: фотографии сотрудников, выполняемые работы, телефоны, электронная почта и график приёма.{% endblock %}
+{% block meta_keywords %}контакты аптеки, сотрудники аптеки, телефон аптеки, провизор консультация{% endblock %}
+{% block og_title %}Контакты — Аптека «Здоровье»{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'core:contacts' %}" itemprop="item"><span itemprop="name">Контакты</span></a>
+    <meta itemprop="position" content="2">
+</li>
+{% endblock %}
+
 {% block content %}
-<div class="med-head">
-    <div>
-        <h1>Контакты</h1>
-        <p class="lead">Сотрудники аптеки, телефоны и календарь работы.</p>
-    </div>
-</div>
+<section class="card" aria-labelledby="contacts-title">
+    <h1 id="contacts-title">Контакты</h1>
+    <p class="lead">Сотрудники аптеки, выполняемые работы, телефоны и календарь приёма.</p>
+    <p class="muted">
+        Общий телефон: <a href="tel:+375173001122">+375 (17) 300-11-22</a> ·
+        почта: <a href="mailto:info@pharmacy.local">info@pharmacy.local</a> ·
+        <a href="{% url 'core:about' %}#map">схема проезда</a>
+    </p>
+</section>
 
 {% if employees %}
     <div class="employee-grid">
         {% for employee in employees %}
-            <article class="card employee-card">
-                <img class="employee-photo" src="{{ employee.photo.url }}" alt="{{ employee.full_name }}">
+            <article class="card employee-card" id="employee-{{ employee.slug }}"
+                     itemscope itemtype="https://schema.org/Person">
+                <img class="employee-photo" src="{{ employee.photo.url }}" itemprop="image"
+                     alt="Фотография сотрудника: {{ employee.full_name }}, {{ employee.position }}"
+                     width="96" height="120" loading="lazy" decoding="async">
                 <div class="employee-info">
-                    <h2>{{ employee.full_name }}</h2>
-                    <p class="muted">{{ employee.position }}</p>
+                    <h2 itemprop="name">{{ employee.full_name }}</h2>
+                    <p class="muted" itemprop="jobTitle">{{ employee.position }}</p>
+
                     {% if employee.phone or employee.email %}
                         <dl class="fact-list">
                             {% if employee.phone %}
                                 <dt>Телефон</dt>
-                                <dd><a href="tel:{{ employee.phone }}">{{ employee.phone }}</a></dd>
+                                <dd><a href="tel:{{ employee.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}" itemprop="telephone">{{ employee.phone }}</a></dd>
                             {% endif %}
                             {% if employee.email %}
-                                <dt>Email</dt>
-                                <dd><a href="mailto:{{ employee.email }}">{{ employee.email }}</a></dd>
+                                <dt>Почта</dt>
+                                <dd><a href="mailto:{{ employee.email }}" itemprop="email">{{ employee.email }}</a></dd>
                             {% endif %}
                         </dl>
                     {% endif %}
+
                     <h3>Календарь работы</h3>
                     <pre class="plain-pre employee-calendar">{{ employee.work_calendar }}</pre>
+
                     {% if employee.note %}
-                        <p>{{ employee.note }}</p>
+                        <h3>Выполняемые работы</h3>
+                        <p itemprop="description">{{ employee.note }}</p>
                     {% endif %}
                 </div>
             </article>
         {% endfor %}
     </div>
 {% else %}
-    <div class="card">
+    <section class="card">
         <p class="muted">Контакты сотрудников скоро появятся.</p>
-    </div>
+    </section>
 {% endif %}
+
+<section class="card" id="feedback" aria-labelledby="feedback-title">
+    <h2 id="feedback-title">Написать в аптеку</h2>
+    <form method="get" action="{% url 'core:glossary' %}" name="feedback">
+        <fieldset>
+            <legend>Вопрос фармацевту</legend>
+            <div class="field-row">
+                <div class="form-field">
+                    <label for="fb-name">Как к вам обращаться</label>
+                    <input type="text" id="fb-name" name="name" maxlength="120" autocomplete="name"
+                           placeholder="Анна" autocapitalize="words">
+                </div>
+                <div class="form-field">
+                    <label for="fb-email">Почта для ответа <span aria-hidden="true">*</span></label>
+                    <input type="email" id="fb-email" name="email" required autocomplete="email"
+                           inputmode="email" placeholder="anna@example.by" spellcheck="false">
+                </div>
+                <div class="form-field">
+                    <label for="fb-topic">Тема</label>
+                    <select id="fb-topic" name="topic">
+                        <option value="order">Вопрос по заказу</option>
+                        <option value="drug" selected>Вопрос о препарате</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-field">
+                <label for="fb-text">Сообщение <span aria-hidden="true">*</span></label>
+                <textarea id="fb-text" name="q" rows="4" required minlength="10" maxlength="1000"
+                          placeholder="Опишите вопрос"></textarea>
+                <small class="help-text">От 10 до 1000 символов.</small>
+            </div>
+            <p class="form-actions cart-actions">
+                <button type="submit" class="btn btn-primary">Отправить</button>
+                <button type="reset" class="btn">Очистить</button>
+            </p>
+        </fieldset>
+    </form>
+</section>
 {% endblock %}

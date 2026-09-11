@@ -1,15 +1,211 @@
 {% extends "frontend/base.html" %}
+{% load static %}
+
 {% block title %}Главная{% endblock %}
+{% block meta_description %}Аптека «Здоровье» — каталог лекарств и товаров для ухода, акции и промокоды, последние новости аптеки и проверенные компании-партнёры.{% endblock %}
+{% block meta_keywords %}аптека Минск, каталог лекарств, заказать лекарства онлайн, акции аптеки, партнёры аптеки{% endblock %}
+{% block og_title %}Аптека «Здоровье» — лекарства и уход с доставкой{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
 {% block content %}
-<div class="card">
-    <h1>Аптека</h1>
-    <p class="muted">Каталог и отзывы доступны всем. Вход для клиентов и сотрудников.</p>
-    <p style="margin-top:1rem;">
-        <a class="btn btn-primary" href="{% url 'pharmacy:medication_list' %}">Каталог</a>
-        <a class="btn" href="{% url 'core:news_list' %}">Новости</a>
-        <a class="btn" href="{% url 'reviews:review_list' %}">Отзывы</a>
-        <a class="btn" href="{% url 'core:contacts' %}">Контакты</a>
-        <a class="btn" href="{% url 'accounts:login' %}">Вход</a>
+
+{# ================= Логотип и приветствие ================= #}
+<section class="card" id="intro" aria-labelledby="intro-title">
+    <figure class="logo-figure" style="margin:0 0 0.75rem;">
+        <img class="company-logo" src="{% static 'img/logo.svg' %}"
+             alt="Логотип аптечной сети «Здоровье»: белый крест на зелёном поле"
+             width="260" height="64" decoding="async">
+        <figcaption class="muted">Логотип аптечной сети «Здоровье», используется с <time datetime="2009">2009</time> года</figcaption>
+    </figure>
+
+    <h1 id="intro-title">Аптека <span lang="ru">«Здоровье»</span> — лекарства и уход рядом с домом</h1>
+    <p class="lead">
+        <strong>Более 4 000 позиций</strong> в каталоге, <em>онлайн-заказ</em> и самовывоз за 15 минут.
+        Работаем по лицензии <abbr title="Министерство здравоохранения Республики Беларусь">Минздрава РБ</abbr>,
+        отпуск рецептурных препаратов — строго по <dfn title="Письменное назначение врача на отпуск лекарственного средства">рецепту</dfn>.
     </p>
-</div>
+    <p class="muted">
+        <mark>Новинка:</mark> оплата заказа онлайн и списание бонусов прямо в корзине.
+    </p>
+</section>
+
+{# ================= Рекламный баннер (несколько картинок) ================= #}
+<section id="promo" aria-labelledby="promo-title">
+    <h2 id="promo-title">Акции аптеки</h2>
+    <div class="banner-strip">
+        {% for banner in banners %}
+            <figure class="banner-figure card" data-banner-id="{{ banner.pk }}" data-position="{{ forloop.counter }}">
+                {# Адаптивное изображение: браузер выбирает файл по ширине вьюпорта #}
+                <picture>
+                    {% if banner.image_mobile %}
+                        <source media="(max-width: 640px)"
+                                srcset="{{ banner.image_mobile.url }} 720w"
+                                sizes="100vw"
+                                width="720" height="400">
+                    {% endif %}
+                    <img class="banner-image"
+                         src="{{ banner.image.url }}"
+                         {% if banner.image_mobile %}srcset="{{ banner.image_mobile.url }} 720w, {{ banner.image.url }} 1440w"
+                         sizes="(max-width: 640px) 100vw, (max-width: 960px) 90vw, 900px"{% endif %}
+                         alt="{{ banner.alt_text }}"
+                         width="1440" height="450"
+                         loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                         decoding="async">
+                </picture>
+                <figcaption class="banner-caption">
+                    <strong>{{ banner.title }}</strong>
+                    {% if banner.subtitle %}<br><small>{{ banner.subtitle }}</small>{% endif %}
+                    {% if banner.link_url %}
+                        <br><a href="{{ banner.link_url }}" title="{{ banner.link_label|default:'Подробнее об акции' }}">{{ banner.link_label|default:"Подробнее" }} →</a>
+                    {% endif %}
+                </figcaption>
+            </figure>
+        {% empty %}
+            <p class="card muted">Баннеры пока не добавлены. Выполните <code>python manage.py seed_demo</code>.</p>
+        {% endfor %}
+    </div>
+</section>
+
+{# ================= Каталог товаров ================= #}
+<section id="catalog" aria-labelledby="catalog-title" style="margin-top:1.5rem;">
+    <div class="med-head">
+        <h2 id="catalog-title">Каталог товаров</h2>
+        <a class="btn" href="{% url 'pharmacy:medication_list' %}">Весь каталог →</a>
+    </div>
+    <p class="lead">Нажмите на товар, чтобы открыть карточку с инструкцией, отзывами и кнопкой «Добавить в корзину».</p>
+
+    <ul class="grid-auto" style="list-style:none; padding:0;">
+        {% for m in featured_medications %}
+            <li class="card" itemscope itemtype="https://schema.org/Product" data-medication-id="{{ m.pk }}">
+                <a href="{{ m.get_absolute_url }}" title="Открыть карточку: {{ m.name }}">
+                    {% if m.image %}
+                        <img src="{{ m.image.url }}" alt="Упаковка препарата {{ m.name }}"
+                             itemprop="image" width="320" height="240" loading="lazy" decoding="async"
+                             style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:4px; border:1px solid var(--border);">
+                    {% else %}
+                        <div class="med-thumb-placeholder" style="width:100%; aspect-ratio:4/3;">нет фото</div>
+                    {% endif %}
+                </a>
+                <h3 style="margin-top:0.5rem;"><a href="{{ m.get_absolute_url }}" itemprop="name">{{ m.name }}</a></h3>
+                <p class="muted" itemprop="brand">{{ m.manufacturer }}</p>
+                <p itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                    <span class="price" itemprop="price">{{ m.price }}</span> BYN
+                    <meta itemprop="priceCurrency" content="BYN">
+                    <link itemprop="availability" href="https://schema.org/{% if m.quantity %}InStock{% else %}OutOfStock{% endif %}">
+                    <span class="pill">{% if m.quantity %}в наличии{% else %}под заказ{% endif %}</span>
+                </p>
+                <form method="post" action="{% url 'cart:add' m.pk %}" class="qty-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-primary btn-small" title="Добавить «{{ m.name }}» в корзину">🛒 В корзину</button>
+                </form>
+            </li>
+        {% empty %}
+            <li class="card muted">Каталог пуст. Выполните <code>python manage.py seed_demo</code>.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+{# ================= Последняя опубликованная статья ================= #}
+<section id="latest-news" aria-labelledby="latest-news-title" style="margin-top:1.5rem;">
+    <h2 id="latest-news-title">Последняя публикация</h2>
+    {% if latest_article %}
+        <article class="card" itemscope itemtype="https://schema.org/NewsArticle">
+            <div class="med-row">
+                <img src="{{ latest_article.image.url }}" alt="Иллюстрация к статье «{{ latest_article.title }}»"
+                     itemprop="image" width="320" height="180" loading="lazy" decoding="async"
+                     style="width:min(100%, 20rem); aspect-ratio:16/9; object-fit:cover; border-radius:4px; border:1px solid var(--border);">
+                <div class="med-main">
+                    <p class="muted">
+                        Опубликовано
+                        <time datetime="{{ latest_article.published_at|date:"Y-m-d\TH:i:sO" }}" itemprop="datePublished">{{ latest_article.published_at|date:"d.m.Y H:i" }}</time>
+                    </p>
+                    <h3 itemprop="headline"><a href="{{ latest_article.get_absolute_url }}" itemprop="url">{{ latest_article.title }}</a></h3>
+                    <p itemprop="description">{{ latest_article.lead }}</p>
+                    <p>
+                        <a class="btn btn-primary" href="{{ latest_article.get_absolute_url }}">Читать далее</a>
+                        <a class="btn" href="{% url 'core:news_list' %}">Все новости</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+    {% else %}
+        <p class="card muted">Статьи ещё не опубликованы.</p>
+    {% endif %}
+</section>
+
+{# ================= Компании-партнёры ================= #}
+<section id="partners" aria-labelledby="partners-title" style="margin-top:1.5rem;">
+    <h2 id="partners-title">Компании-партнёры</h2>
+    <p class="lead">Поставщики и производители, с которыми аптека работает по прямым договорам.</p>
+
+    <ul class="grid-auto" style="list-style:none; padding:0;">
+        {% for partner in partners %}
+            <li class="card" itemscope itemtype="https://schema.org/Organization">
+                <a href="{{ partner.site_url }}" target="_blank" rel="noopener noreferrer external"
+                   title="Перейти на сайт партнёра «{{ partner.name }}» (откроется в новой вкладке)" itemprop="url">
+                    <img class="partner-logo" src="{{ partner.logo.url }}" alt="Логотип компании {{ partner.name }}"
+                         itemprop="logo" width="160" height="64" loading="lazy" decoding="async">
+                </a>
+                <h3 style="margin-top:0.5rem;">
+                    <a href="{{ partner.site_url }}" target="_blank" rel="noopener noreferrer external" itemprop="name">{{ partner.name }}</a>
+                    <small class="muted">↗</small>
+                </h3>
+                {% if partner.description %}<p class="muted" itemprop="description">{{ partner.description }}</p>{% endif %}
+                <p class="muted">
+                    {% if partner.country %}<span itemprop="location">{{ partner.country }}</span>{% endif %}
+                    {% if partner.cooperation_since %} · сотрудничаем с <time datetime="{{ partner.cooperation_since }}">{{ partner.cooperation_since }}</time> г.{% endif %}
+                </p>
+            </li>
+        {% empty %}
+            <li class="card muted">Партнёры пока не добавлены.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+{# ================= Подписка: форма с валидацией ================= #}
+<section id="subscribe" aria-labelledby="subscribe-title" style="margin-top:1.5rem;">
+    <h2 id="subscribe-title">Подписка на акции</h2>
+    <form class="card" method="get" action="{% url 'core:promocodes' %}" name="subscribe">
+        <fieldset>
+            <legend>Получать промокоды на почту</legend>
+            <div class="field-row">
+                <p>
+                    <label for="sub-email">Электронная почта <span aria-hidden="true">*</span></label>
+                    <input type="email" id="sub-email" name="email" placeholder="client@example.by"
+                           required autocomplete="email" inputmode="email" spellcheck="false"
+                           aria-describedby="sub-email-help">
+                    <small class="help-text" id="sub-email-help">Отправляем не чаще одного письма в неделю.</small>
+                </p>
+                <p>
+                    <label for="sub-topic">Интересующий раздел</label>
+                    <select id="sub-topic" name="topic">
+                        <optgroup label="Лекарства">
+                            <option value="rx">Рецептурные препараты</option>
+                            <option value="otc" selected>Безрецептурные препараты</option>
+                        </optgroup>
+                        <optgroup label="Прочее">
+                            <option value="care">Товары для ухода</option>
+                            <option value="kids">Детская аптека</option>
+                        </optgroup>
+                    </select>
+                </p>
+            </div>
+            <p>
+                <label for="sub-agree" class="checkbox-label">
+                    <input type="checkbox" id="sub-agree" name="agree" value="yes" required>
+                    Согласен с политикой конфиденциальности
+                </label>
+                <small class="help-text"><a href="{% url 'core:privacy' %}">Читать политику конфиденциальности</a></small>
+            </p>
+            <p class="form-actions">
+                <button type="submit" class="btn btn-primary">Подписаться</button>
+                <button type="reset" class="btn">Очистить</button>
+            </p>
+        </fieldset>
+    </form>
+</section>
+
 {% endblock %}

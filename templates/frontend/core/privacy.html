@@ -1,0 +1,178 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Политика конфиденциальности{% endblock %}
+{% block meta_description %}Политика конфиденциальности аптеки «Здоровье»: какие персональные данные собираются при заказе лекарств, зачем, как долго хранятся и как их удалить.{% endblock %}
+{% block meta_keywords %}политика конфиденциальности аптеки, персональные данные, обработка данных, cookie{% endblock %}
+{% block meta_robots %}index, follow, max-snippet:-1{% endblock %}
+{% block og_title %}Политика конфиденциальности — Аптека «Здоровье»{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'core:privacy' %}" itemprop="item"><span itemprop="name">Политика конфиденциальности</span></a>
+    <meta itemprop="position" content="2">
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="layout-aside">
+    <aside class="card sidebar-sticky" aria-label="Содержание документа">
+        <nav class="nav-vertical" aria-label="Разделы политики конфиденциальности">
+            <h2 class="footer-title">Разделы</h2>
+            <ol class="nav-list-vertical">
+                <li><a href="#p-general">1. Общие положения</a></li>
+                <li><a href="#p-data">2. Какие данные собираем</a></li>
+                <li><a href="#p-purpose">3. Цели обработки</a></li>
+                <li><a href="#p-health">4. Данные о здоровье</a></li>
+                <li><a href="#p-storage">5. Сроки хранения</a></li>
+                <li><a href="#p-cookies">6. Cookie и аналитика</a></li>
+                <li><a href="#p-rights">7. Права покупателя</a></li>
+                <li><a href="#p-contacts">8. Контакты</a></li>
+            </ol>
+        </nav>
+    </aside>
+
+    <article class="card" itemscope itemtype="https://schema.org/WebPage">
+        <h1 itemprop="name">Политика конфиденциальности</h1>
+        <p class="muted">
+            Редакция от <time datetime="2026-09-01" itemprop="dateModified">1 сентября 2026 года</time>.
+            Документ относится к сайту аптечной сети <strong>«Здоровье»</strong>
+            {% if company %}(<span>{{ company.legal_name }}</span>){% endif %}.
+        </p>
+
+        <section id="p-general" aria-labelledby="p-general-t">
+            <h2 id="p-general-t">1. Общие положения</h2>
+            <p>
+                Настоящая политика описывает, какие <dfn>персональные данные</dfn> — сведения, относящиеся
+                к идентифицированному физическому лицу, — аптека собирает при оформлении заказа лекарственных
+                средств, регистрации личного кабинета и публикации отзывов.
+            </p>
+            <p>
+                Обработка ведётся в соответствии с законодательством Республики Беларусь о защите персональных данных.
+                Оператором выступает {% if company %}{{ company.legal_name }}{% else %}УП «Здоровье-Фарм»{% endif %},
+                <abbr title="Учётный номер плательщика">УНП</abbr> 191234567.
+            </p>
+        </section>
+
+        <section id="p-data" aria-labelledby="p-data-t">
+            <h2 id="p-data-t">2. Какие данные собираем</h2>
+            <dl class="fact-list">
+                <dt>При оформлении заказа</dt>
+                <dd>имя и фамилия, телефон, адрес электронной почты, адрес доставки, состав заказа.</dd>
+                <dt>При регистрации кабинета</dt>
+                <dd>логин, дата рождения (подтверждение возраста <span translate="no">18+</span>), телефон, адрес.</dd>
+                <dt>При публикации отзыва</dt>
+                <dd>логин автора, оценка, текст отзыва, дата публикации.</dd>
+                <dt>Автоматически</dt>
+                <dd><abbr title="Internet Protocol">IP</abbr>-адрес, тип браузера, идентификатор сессии.</dd>
+            </dl>
+            <p class="muted">
+                <strong>Мы не собираем</strong> данные банковской карты: реквизиты вводятся на странице оплаты
+                и передаются платёжному провайдеру, на сервере аптеки они <em>не сохраняются</em>.
+            </p>
+        </section>
+
+        <section id="p-purpose" aria-labelledby="p-purpose-t">
+            <h2 id="p-purpose-t">3. Цели обработки</h2>
+            <ol>
+                <li>Выполнение заказа: сборка, резервирование препарата, доставка или самовывоз.</li>
+                <li>Проверка права на отпуск рецептурных препаратов.</li>
+                <li>Связь с покупателем по вопросам заказа и возвратов.</li>
+                <li>Начисление бонусов и применение промокодов.</li>
+                <li>Информирование об акциях — <ins>только при отдельном согласии</ins> на рассылку.</li>
+            </ol>
+        </section>
+
+        <section id="p-health" aria-labelledby="p-health-t">
+            <h2 id="p-health-t">4. Данные о здоровье</h2>
+            <blockquote cite="{% url 'core:privacy' %}#p-health">
+                <p>
+                    Состав заказа может косвенно указывать на состояние здоровья, поэтому история покупок
+                    относится к сведениям ограниченного доступа и не передаётся третьим лицам
+                    в рекламных целях.
+                </p>
+            </blockquote>
+            <p>
+                Доступ к истории заказов имеют только сотрудники аптеки в объёме, необходимом для отпуска товара,
+                и сам покупатель в <a href="{% url 'frontend:home' %}">личном кабинете</a>.
+            </p>
+        </section>
+
+        <section id="p-storage" aria-labelledby="p-storage-t">
+            <h2 id="p-storage-t">5. Сроки хранения</h2>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <caption>Сроки хранения категорий данных.</caption>
+                    <thead>
+                        <tr>
+                            <th id="s-cat" scope="col">Категория данных</th>
+                            <th id="s-term" scope="col" class="num">Срок, месяцев</th>
+                            <th id="s-base" scope="col">Основание</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th id="s-order" scope="row" headers="s-cat">Данные заказа</th>
+                            <td class="num" headers="s-term s-order">36</td>
+                            <td headers="s-base s-order">бухгалтерский учёт и гарантийные обращения</td>
+                        </tr>
+                        <tr>
+                            <th id="s-account" scope="row" headers="s-cat">Учётная запись</th>
+                            <td class="num" headers="s-term s-account">до удаления</td>
+                            <td headers="s-base s-account">исполнение договора оферты</td>
+                        </tr>
+                        <tr>
+                            <th id="s-review" scope="row" headers="s-cat">Отзывы</th>
+                            <td class="num" headers="s-term s-review">бессрочно</td>
+                            <td headers="s-base s-review">публичный контент сайта</td>
+                        </tr>
+                        <tr>
+                            <th id="s-log" scope="row" headers="s-cat">Технические журналы</th>
+                            <td class="num" headers="s-term s-log">6</td>
+                            <td headers="s-base s-log">безопасность и расследование инцидентов</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="p-cookies" aria-labelledby="p-cookies-t">
+            <h2 id="p-cookies-t">6. Cookie и аналитика</h2>
+            <p>
+                Сайт использует технические <span translate="no">cookie</span>: идентификатор сессии
+                (<samp>sessionid</samp>), защита форм от подделки запроса (<samp>csrftoken</samp>)
+                и содержимое корзины. Без них корзина и вход в кабинет работать не будут.
+            </p>
+            <p class="muted">
+                Очистить корзину можно кнопкой на <a href="{% url 'cart:detail' %}" rel="nofollow">странице корзины</a>,
+                а cookie — в настройках браузера (обычно <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Del</kbd>).
+            </p>
+        </section>
+
+        <section id="p-rights" aria-labelledby="p-rights-t">
+            <h2 id="p-rights-t">7. Права покупателя</h2>
+            <ul>
+                <li>получить сведения о том, какие данные о нём обрабатываются;</li>
+                <li>потребовать исправления неточных данных;</li>
+                <li>отозвать согласие на рассылку и на обработку данных;</li>
+                <li>потребовать удаления учётной записи и связанных с ней данных;</li>
+                <li>обжаловать действия оператора в уполномоченном органе по защите персональных данных.</li>
+            </ul>
+            <p>Запрос рассматривается в течение <time datetime="P15D">15 дней</time> с момента получения.</p>
+        </section>
+
+        <section id="p-contacts" aria-labelledby="p-contacts-t">
+            <h2 id="p-contacts-t">8. Контакты</h2>
+            <address style="font-style:normal;">
+                <p>Ответственный за обработку персональных данных:</p>
+                <p>Почта: <a href="mailto:privacy@pharmacy.local?subject=Запрос%20по%20персональным%20данным">privacy@pharmacy.local</a></p>
+                <p>Телефон: <a href="tel:+375173001122">+375 (17) 300-11-22</a></p>
+                {% if company and company.address %}<p>Адрес: {{ company.address }}</p>{% endif %}
+            </address>
+            <p class="muted">
+                См. также <a href="{% url 'core:about' %}#requisites">реквизиты компании</a> и
+                <a href="{% url 'core:contacts' %}">контакты сотрудников</a>. <a href="#top">↑ Наверх</a>
+            </p>
+        </section>
+    </article>
+</div>
+{% endblock %}

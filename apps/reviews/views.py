@@ -13,7 +13,7 @@ from django_filters.views import FilterView
 
 from apps.pharmacy.models import Medication
 from apps.reviews.filters import ReviewFilter
-from apps.reviews.forms import ReviewCreateForm, ReviewUpdateForm
+from apps.reviews.forms import ReviewCreateAnyForm, ReviewCreateForm, ReviewUpdateForm
 from apps.reviews.models import Review
 from apps.reviews import selectors as review_selectors
 from apps.reviews.services import ReviewService
@@ -78,6 +78,34 @@ class ReviewCreateView(LoginRequiredMixin, FormView):
                 form.add_error(None, msg)
             return self.form_invalid(form)
         messages.success(self.request, _("Отзыв отправлен на модерацию."))
+        return HttpResponseRedirect(review.get_absolute_url())
+
+
+class ReviewCreateAnyView(LoginRequiredMixin, FormView):
+    """
+    «Добавить отзыв» со страницы отзывов.
+
+    Препарат не задан в URL — пользователь выбирает его в форме. Неавторизованного
+    LoginRequiredMixin отправляет на вход, откуда есть ссылка на регистрацию.
+    """
+
+    form_class = ReviewCreateAnyForm
+    template_name = "frontend/reviews/review_create_any.html"
+    login_url = _REVIEW_LOGIN_URL
+
+    def form_valid(self, form: ReviewCreateAnyForm) -> HttpResponse:
+        try:
+            review = ReviewService.create_review(
+                user=self.request.user,
+                medication_id=form.cleaned_data["medication"].pk,
+                rating=int(form.cleaned_data["rating"]),
+                text=form.cleaned_data.get("text") or "",
+            )
+        except ValidationError as exc:
+            for msg in exc.messages:
+                form.add_error(None, msg)
+            return self.form_invalid(form)
+        messages.success(self.request, _("Отзыв сохранён и отправлен на модерацию."))
         return HttpResponseRedirect(review.get_absolute_url())
 
 

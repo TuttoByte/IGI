@@ -1,0 +1,91 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Словарь терминов и понятий{% endblock %}
+{% block meta_description %}Словарь аптечных терминов и часто задаваемых вопросов: МНН, дженерик, рецептурный отпуск, срок годности, условия хранения — с датой добавления на сайт.{% endblock %}
+{% block meta_keywords %}словарь аптечных терминов, МНН, дженерик, часто задаваемые вопросы аптека, FAQ аптека{% endblock %}
+{% block og_title %}Словарь терминов и понятий — Аптека «Здоровье»{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'core:glossary' %}" itemprop="item"><span itemprop="name">Словарь терминов</span></a>
+    <meta itemprop="position" content="2">
+</li>
+{% endblock %}
+
+{% block content %}
+<section class="card" aria-labelledby="glossary-title">
+    <h1 id="glossary-title">Словарь терминов и понятий</h1>
+    <p class="lead">
+        Часто задаваемые вопросы о лекарствах и правилах аптеки.
+        Нажмите на вопрос, чтобы раскрыть развёрнутый ответ.
+    </p>
+
+    <form method="get" action="{% url 'core:glossary' %}" class="inline-form" role="search" aria-label="Поиск по словарю">
+        <label for="glossary-q">Поиск по термину или вопросу</label>
+        <input type="search" id="glossary-q" name="q" value="{{ query }}"
+               placeholder="например, дженерик" minlength="2" maxlength="60"
+               spellcheck="false" autocomplete="off" inputmode="search" enterkeyhint="search">
+        <button type="submit" class="btn btn-primary">Найти</button>
+        {% if query %}<a class="btn btn-ghost" href="{% url 'core:glossary' %}">Сбросить</a>{% endif %}
+    </form>
+    {% if query %}
+        <p class="muted">Результаты по запросу <q>{{ query }}</q>: найдено {{ terms|length }}.</p>
+    {% endif %}
+</section>
+
+{# ============ Определения терминов ============ #}
+<section class="card" id="terms" aria-labelledby="terms-title">
+    <h2 id="terms-title">Термины</h2>
+    <dl class="fact-list">
+        {% for term in terms %}
+            <dt id="term-{{ term.slug }}">
+                <dfn title="{{ term.term }}">{{ term.term }}</dfn>
+                {% if term.abbreviation %}
+                    (<abbr title="{{ term.term }}">{{ term.abbreviation }}</abbr>)
+                {% endif %}
+            </dt>
+            <dd>
+                {{ term.short_answer|default:term.question }}
+                <small class="muted">
+                    — добавлено <time datetime="{{ term.added_at|date:'Y-m-d' }}">{{ term.added_at|date:"d.m.Y" }}</time>,
+                    <a href="#faq-{{ term.slug }}" title="Перейти к развёрнутому ответу">развёрнутый ответ ↓</a>
+                </small>
+            </dd>
+        {% empty %}
+            <dt>Словарь пуст</dt>
+            <dd class="muted">Выполните <code>python manage.py seed_demo</code> или добавьте термины в админке.</dd>
+        {% endfor %}
+    </dl>
+</section>
+
+{# ============ Часто задаваемые вопросы ============ #}
+<section class="card" id="faq" aria-labelledby="faq-title" itemscope itemtype="https://schema.org/FAQPage">
+    <h2 id="faq-title">Часто задаваемые вопросы</h2>
+
+    {% for term in terms %}
+        <details class="qa" id="faq-{{ term.slug }}"
+                 itemscope itemprop="mainEntity" itemtype="https://schema.org/Question"
+                 data-term="{{ term.slug }}" {% if forloop.first %}open{% endif %}>
+            <summary itemprop="name" title="Раскрыть или свернуть ответ">
+                {{ term.question }}
+            </summary>
+            <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                <div class="text-content" itemprop="text">{{ term.answer|linebreaks }}</div>
+            </div>
+            <p class="muted">
+                <small>
+                    Термин: <a href="#term-{{ term.slug }}">{{ term.term }}</a> ·
+                    на сайте с <time datetime="{{ term.added_at|date:'Y-m-d' }}" itemprop="dateCreated">{{ term.added_at|date:"d.m.Y" }}</time>
+                </small>
+            </p>
+        </details>
+    {% empty %}
+        <p class="muted">Вопросы ещё не добавлены.</p>
+    {% endfor %}
+
+    <p class="muted">
+        Не нашли ответ? Напишите на <a href="mailto:info@pharmacy.local?subject=Вопрос%20в%20словарь%20терминов">info@pharmacy.local</a>
+        или посмотрите <a href="{% url 'core:contacts' %}">контакты сотрудников</a>.
+    </p>
+</section>
+{% endblock %}

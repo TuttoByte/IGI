@@ -18,3 +18,7 @@ env/
 *.tar
 *.tar.gz
 staticfiles/
+
+.codex
+.agents
+.claude

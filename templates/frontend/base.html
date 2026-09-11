@@ -1,58 +1,183 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" dir="ltr" data-site="pharmacy" data-app="pharmacy-lr1">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Сайт{% endblock %}</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <title>{% block title %}Аптека «Здоровье»{% endblock %} — Аптека «Здоровье»</title>
+
+    {# --- Мета-данные для поисковых систем --- #}
+    <meta name="description" content="{% block meta_description %}Аптечная сеть «Здоровье»: каталог лекарств и товаров для ухода, онлайн-заказ, консультации фармацевта, новости и отзывы покупателей.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}аптека, лекарства, каталог препаратов, купить лекарства, витамины, промокоды аптеки, отзывы о препаратах{% endblock %}">
+    <meta name="author" content="Аптека «Здоровье»">
+    <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+    <meta name="generator" content="Django">
+    <meta name="theme-color" content="#0e6f52">
+    <meta name="rating" content="general">
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+
+    {# --- Open Graph и Twitter Card: карточка ссылки в соцсетях и мессенджерах --- #}
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:site_name" content="Аптека «Здоровье»">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:title" content="{% block og_title %}Аптека «Здоровье»{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Каталог лекарств, онлайн-заказ и консультации фармацевта.{% endblock %}">
+    <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.svg' %}{% endblock %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}Аптека «Здоровье»{% endblock %}">
+
+    {# --- Иконка сайта --- #}
+    <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" href="{% static 'img/favicon.svg' %}">
+
     <link rel="stylesheet" href="{% static 'css/shell.css' %}">
+
+    {# --- Микроразметка организации (JSON-LD, schema.org) --- #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Pharmacy",
+      "name": "Аптека «Здоровье»",
+      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.svg' %}",
+      "telephone": "+375 (17) 300-11-22",
+      "priceRange": "BYN",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Минск",
+        "streetAddress": "пр-т Независимости, 58",
+        "postalCode": "220005",
+        "addressCountry": "BY"
+      },
+      "openingHours": "Mo-Su 08:00-22:00"
+    }
+    </script>
     {% block extra_head %}{% endblock %}
 </head>
-<body>
-<header>
+<body id="top" itemscope itemtype="https://schema.org/WebPage" data-page="{{ request.resolver_match.url_name|default:'unknown' }}">
+
+<a class="skip-link" href="#main-content" accesskey="1" title="Перейти к содержимому (Alt+1)">К основному содержимому</a>
+
+<header class="site-header" itemscope itemtype="https://schema.org/WPHeader">
     <div class="header-inner">
-        <a class="brand" href="{% url 'core:home' %}">Аптека</a>
-        <nav aria-label="Сайт">
-            <a href="{% url 'core:home' %}" class="{% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'home' %}nav-active{% endif %}">Главная</a>
-            <a href="{% url 'core:news_list' %}" class="{% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'news_list' or request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'news_detail' %}nav-active{% endif %}">Новости</a>
-            <a href="{% url 'pharmacy:medication_list' %}" class="{% if request.resolver_match.namespace == 'pharmacy' and request.resolver_match.url_name != 'external_lookup' %}nav-active{% endif %}">Каталог</a>
-            <a href="{% url 'pharmacy:external_lookup' %}" class="{% if request.resolver_match.namespace == 'pharmacy' and request.resolver_match.url_name == 'external_lookup' %}nav-active{% endif %}">Справочники</a>
-            <a href="{% url 'reviews:review_list' %}" class="{% if request.resolver_match.namespace == 'reviews' %}nav-active{% endif %}">Отзывы</a>
-            <a href="{% url 'core:contacts' %}" class="{% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'contacts' %}nav-active{% endif %}">Контакты</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'frontend:home' %}" class="{% if request.resolver_match.namespace == 'frontend' %}nav-active{% endif %}">Кабинет</a>
-                {% if user.role == 'ADMIN' or user.role == 'EMPLOYEE' %}
-                    <a href="{% url 'dashboard:index' %}">Панель</a>
-                {% endif %}
-            {% endif %}
-            {% if not user.is_authenticated %}
-                <a href="{% url 'accounts:login' %}">Вход</a>
-                <a href="{% url 'accounts:register' %}">Регистрация</a>
-            {% endif %}
+        <a class="brand" href="{% url 'core:home' %}" title="На главную страницу" rel="home">
+            <img src="{% static 'img/logo.svg' %}" alt="Логотип аптеки «Здоровье»" width="180" height="44" class="brand-logo">
+        </a>
+
+        {# --- Горизонтальная навигация --- #}
+        <nav class="nav-horizontal" aria-label="Основная навигация" itemscope itemtype="https://schema.org/SiteNavigationElement">
+            <ul class="nav-list">
+                <li><a href="{% url 'core:home' %}" itemprop="url"{% if request.resolver_match.url_name == 'home' %} class="nav-active" aria-current="page"{% endif %}><span itemprop="name">Главная</span></a></li>
+                <li><a href="{% url 'pharmacy:medication_list' %}" itemprop="url"{% if request.resolver_match.namespace == 'pharmacy' and request.resolver_match.url_name != 'external_lookup' %} class="nav-active" aria-current="page"{% endif %}><span itemprop="name">Каталог</span></a></li>
+                <li><a href="{% url 'core:about' %}" itemprop="url"{% if request.resolver_match.url_name == 'about' %} class="nav-active" aria-current="page"{% endif %}><span itemprop="name">О компании</span></a></li>
+                <li><a href="{% url 'core:news_list' %}" itemprop="url"{% if request.resolver_match.url_name == 'news_list' or request.resolver_match.url_name == 'news_detail' %} class="nav-active" aria-current="page"{% endif %}><span itemprop="name">Новости</span></a></li>
+                <li><a href="{% url 'core:glossary' %}" itemprop="url"{% if request.resolver_match.url_name == 'glossary' %} class="nav-active" aria-current="page"{% endif %}><span itemprop="name">Словарь</span></a></li>
+                <li><a href="{% url 'reviews:review_list' %}" itemprop="url"{% if request.resolver_match.namespace == 'reviews' %} class="nav-active" aria-current="page"{% endif %}><span itemprop="name">Отзывы</span></a></li>
+                <li><a href="{% url 'core:promocodes' %}" itemprop="url"{% if request.resolver_match.url_name == 'promocodes' %} class="nav-active" aria-current="page"{% endif %}><span itemprop="name">Промокоды</span></a></li>
+                <li><a href="{% url 'core:vacancies' %}" itemprop="url"{% if request.resolver_match.url_name == 'vacancies' %} class="nav-active" aria-current="page"{% endif %}><span itemprop="name">Вакансии</span></a></li>
+                <li><a href="{% url 'core:contacts' %}" itemprop="url"{% if request.resolver_match.url_name == 'contacts' %} class="nav-active" aria-current="page"{% endif %}><span itemprop="name">Контакты</span></a></li>
+            </ul>
         </nav>
-        <div class="muted">
+
+        <div class="header-aside">
+            <a class="cart-link" href="{% url 'cart:detail' %}" title="Корзина заказа (Alt+2)" accesskey="2" rel="nofollow">
+                🛒 Корзина
+                <output class="cart-counter" data-count="{{ cart_total_quantity }}" aria-live="polite">{{ cart_total_quantity }}</output>
+            </a>
             {% if user.is_authenticated %}
-                {{ user.username }}
+                <span class="muted" title="Текущий пользователь">{{ user.username }}</span>
+                <a class="btn btn-small" href="{% url 'frontend:home' %}">Кабинет</a>
+                {% if user.role == 'ADMIN' or user.role == 'EMPLOYEE' %}
+                    <a class="btn btn-small" href="{% url 'dashboard:index' %}">Панель</a>
+                {% endif %}
                 <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-small">Выйти</button>
                 </form>
             {% else %}
-                гость
+                <a class="btn btn-small" href="{% url 'accounts:login' %}">Вход</a>
+                <a class="btn btn-small btn-primary" href="{% url 'accounts:register' %}">Регистрация</a>
             {% endif %}
         </div>
     </div>
 </header>
-<main>
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Хлебные крошки" itemscope itemtype="https://schema.org/BreadcrumbList">
+    <ol class="breadcrumb-list">
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{% url 'core:home' %}" itemprop="item"><span itemprop="name">Главная</span></a>
+            <meta itemprop="position" content="1">
+        </li>
+        {% block breadcrumb_items %}{% endblock %}
+    </ol>
+</nav>
+{% endblock %}
+
+<main id="main-content" tabindex="-1" itemprop="mainContentOfPage">
     {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
+        <div role="status" aria-live="polite">
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
     {% endif %}
     {% block content %}{% endblock %}
 </main>
-<footer>Публичный сайт</footer>
+
+<footer class="site-footer" itemscope itemtype="https://schema.org/WPFooter">
+    <div class="footer-inner">
+        {# --- Вертикальная навигация --- #}
+        <nav class="nav-vertical" aria-label="Разделы сайта">
+            <h2 class="footer-title">Покупателю</h2>
+            <ul class="nav-list-vertical">
+                <li><a href="{% url 'pharmacy:medication_list' %}">Каталог препаратов</a></li>
+                <li><a href="{% url 'cart:detail' %}" rel="nofollow">Корзина заказа</a></li>
+                <li><a href="{% url 'core:promocodes' %}">Промокоды и купоны</a></li>
+                <li><a href="{% url 'core:glossary' %}">Словарь терминов</a></li>
+                <li><a href="{% url 'reviews:review_list' %}">Отзывы</a></li>
+            </ul>
+        </nav>
+
+        <nav class="nav-vertical" aria-label="О компании">
+            <h2 class="footer-title">Компания</h2>
+            <ul class="nav-list-vertical">
+                <li><a href="{% url 'core:about' %}">О компании</a></li>
+                <li><a href="{% url 'core:news_list' %}">Новости</a></li>
+                <li><a href="{% url 'core:vacancies' %}">Вакансии</a></li>
+                <li><a href="{% url 'core:contacts' %}">Контакты</a></li>
+                <li><a href="{% url 'core:privacy' %}" rel="license">Политика конфиденциальности</a></li>
+            </ul>
+        </nav>
+
+        <div class="footer-contacts" itemscope itemtype="https://schema.org/Pharmacy">
+            <h2 class="footer-title"><span itemprop="name">Аптека «Здоровье»</span></h2>
+            <address>
+            <p itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+                <span itemprop="postalCode">220005</span>,
+                <span itemprop="addressLocality">Минск</span>,
+                <span itemprop="streetAddress">пр-т Независимости, 58</span>
+            </p>
+            <p>Телефон: <a href="tel:+375173001122" itemprop="telephone">+375 (17) 300-11-22</a></p>
+            <p>Почта: <a href="mailto:info@pharmacy.local" itemprop="email">info@pharmacy.local</a></p>
+            <p>Часы работы: ежедневно <time datetime="08:00">08:00</time>–<time datetime="22:00">22:00</time></p>
+            <meta itemprop="openingHours" content="Mo-Su 08:00-22:00">
+            <p><a href="#top" title="Вернуться к началу страницы">↑ Наверх</a></p>
+            </address>
+        </div>
+    </div>
+    <p class="footer-copy">
+        <small>
+            © <time datetime="{% now 'Y' %}">{% now "Y" %}</time> Аптека «Здоровье».
+            <abbr title="Унитарное предприятие">УП</abbr> «Здоровье-Фарм», <abbr title="Учётный номер плательщика">УНП</abbr> 191234567.
+            Учебный проект: <span translate="no" lang="en">Django</span> + <span translate="no" lang="en">HTML5</span>.
+        </small>
+    </p>
+</footer>
 </body>
 </html>

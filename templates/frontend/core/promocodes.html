@@ -1,0 +1,140 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Промокоды и купоны{% endblock %}
+{% block meta_description %}Действующие промокоды и купоны аптеки «Здоровье», размер скидки, минимальная сумма заказа и срок действия, а также архив завершённых акций.{% endblock %}
+{% block meta_keywords %}промокод аптека, купон на скидку, скидка на лекарства, акции аптеки Минск{% endblock %}
+{% block og_title %}Промокоды и купоны — Аптека «Здоровье»{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'core:promocodes' %}" itemprop="item"><span itemprop="name">Промокоды и купоны</span></a>
+    <meta itemprop="position" content="2">
+</li>
+{% endblock %}
+
+{% block content %}
+<section class="card" aria-labelledby="promo-page-title">
+    <h1 id="promo-page-title">Промокоды и купоны</h1>
+    <p class="lead">
+        Промокод вводится на <a href="{% url 'cart:checkout' %}" rel="nofollow">странице оплаты</a> в поле
+        <q>Промокод</q>. За один заказ применяется <strong>один</strong> промокод, скидка не суммируется с
+        <abbr title="Скидка по дисконтной карте постоянного покупателя">дисконтом</abbr>.
+    </p>
+</section>
+
+{# ============ Действующие промокоды ============ #}
+<section class="card" id="active-promo" aria-labelledby="active-promo-title">
+    <h2 id="active-promo-title">Действующие</h2>
+    <div class="table-scroll">
+        <table class="data-table">
+            <caption>Промокоды, доступные к применению сегодня. Скидка указана в процентах от суммы позиций.</caption>
+            <thead>
+                <tr>
+                    <th id="p-code" scope="col">Код</th>
+                    <th id="p-title" scope="col">Акция</th>
+                    <th id="p-discount" scope="col" class="num">Скидка, %</th>
+                    <th id="p-min" scope="col" class="num">От суммы, BYN</th>
+                    <th id="p-limit" scope="col" class="num">Осталось</th>
+                    <th id="p-period" colspan="2" scope="colgroup">Срок действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for promo in current_promos %}
+                    <tr data-promo="{{ promo.code }}">
+                        <th id="pc-{{ promo.code }}" scope="row" headers="p-code">
+                            <code translate="no">{{ promo.code }}</code>
+                        </th>
+                        <td headers="p-title pc-{{ promo.code }}">
+                            <strong>{{ promo.title }}</strong>
+                            {% if promo.description %}<br><small class="muted">{{ promo.description }}</small>{% endif %}
+                        </td>
+                        <td class="num" headers="p-discount pc-{{ promo.code }}">{{ promo.discount_percent }}</td>
+                        <td class="num" headers="p-min pc-{{ promo.code }}">{{ promo.min_order_total }}</td>
+                        <td class="num" headers="p-limit pc-{{ promo.code }}">
+                            {% if promo.usage_limit %}{{ promo.remaining_uses }}{% else %}∞{% endif %}
+                        </td>
+                        <td headers="p-period pc-{{ promo.code }}">
+                            с <time datetime="{{ promo.valid_from|date:'Y-m-d' }}">{{ promo.valid_from|date:"d.m.Y" }}</time>
+                        </td>
+                        <td headers="p-period pc-{{ promo.code }}">
+                            по <time datetime="{{ promo.valid_to|date:'Y-m-d' }}">{{ promo.valid_to|date:"d.m.Y" }}</time>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="muted">Действующих промокодов сейчас нет.</td></tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th id="p-total" colspan="2" scope="row">Всего действующих</th>
+                    <td class="num" colspan="5" headers="p-total">{{ current_promos|length }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <h3>Как применить</h3>
+    <ol>
+        <li>Добавьте товары в <a href="{% url 'cart:detail' %}" rel="nofollow">корзину</a>.</li>
+        <li>Нажмите <q>Перейти к оплате</q>.</li>
+        <li>Введите код в поле <q>Промокод</q> и завершите оплату.</li>
+    </ol>
+</section>
+
+{# ============ Архив ============ #}
+<section class="card" id="archive-promo" aria-labelledby="archive-promo-title">
+    <h2 id="archive-promo-title">Архив</h2>
+    <p class="lead">Завершённые, отключённые и ещё не стартовавшие акции — для истории.</p>
+    <div class="table-scroll">
+        <table class="data-table">
+            <caption>Архив промокодов аптеки «Здоровье».</caption>
+            <thead>
+                <tr>
+                    <th id="a-code" scope="col">Код</th>
+                    <th id="a-title" scope="col">Акция</th>
+                    <th id="a-discount" scope="col" class="num">Скидка, %</th>
+                    <th id="a-used" scope="col" class="num">Использований</th>
+                    <th id="a-until" scope="col">Действовал по</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for promo in archived_promos %}
+                    <tr>
+                        <th id="ac-{{ promo.code }}" scope="row" headers="a-code">
+                            <s translate="no">{{ promo.code }}</s>
+                        </th>
+                        <td headers="a-title ac-{{ promo.code }}">{{ promo.title }}</td>
+                        <td class="num" headers="a-discount ac-{{ promo.code }}">{{ promo.discount_percent }}</td>
+                        <td class="num" headers="a-used ac-{{ promo.code }}">{{ promo.used_count }}</td>
+                        <td headers="a-until ac-{{ promo.code }}">
+                            <time datetime="{{ promo.valid_to|date:'Y-m-d' }}">{{ promo.valid_to|date:"d.m.Y" }}</time>
+                            {% if not promo.is_active %}<span class="pill">отключён</span>{% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="muted">Архив пуст.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{# ============ Проверка промокода ============ #}
+<section class="card" id="check-promo" aria-labelledby="check-promo-title">
+    <h2 id="check-promo-title">Проверить промокод</h2>
+    <form method="get" action="{% url 'cart:checkout' %}" class="inline-form">
+        <label for="promo-check">Введите код</label>
+        <input type="text" id="promo-check" name="promo_code" list="promo-options"
+               placeholder="VITAMIN15" pattern="[A-Za-z0-9\-]{4,32}" minlength="4" maxlength="32"
+               required autocapitalize="characters" spellcheck="false" autocomplete="off"
+               aria-describedby="promo-check-help">
+        <datalist id="promo-options">
+            {% for promo in current_promos %}
+                <option value="{{ promo.code }}" label="{{ promo.discount_percent }}% — {{ promo.title }}"></option>
+            {% endfor %}
+        </datalist>
+        <button type="submit" class="btn btn-primary">Применить в заказе</button>
+        <small class="help-text" id="promo-check-help">Только латинские буквы, цифры и дефис, от 4 до 32 символов.</small>
+    </form>
+</section>
+{% endblock %}

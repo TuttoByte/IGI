@@ -1,0 +1,147 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Корзина заказа{% endblock %}
+{% block meta_description %}Корзина заказа аптеки «Здоровье»: изменение количества товаров, удаление позиций и переход к оплате.{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'cart:detail' %}" itemprop="item"><span itemprop="name">Корзина</span></a>
+    <meta itemprop="position" content="2">
+</li>
+{% endblock %}
+
+{% block content %}
+<section class="card" aria-labelledby="cart-title">
+    <h1 id="cart-title">Корзина заказа</h1>
+    {% if lines %}
+        <p class="lead">
+            Позиций: <strong>{{ totals.positions }}</strong>, товаров: <strong>{{ totals.quantity }}</strong>.
+            Доставка бесплатна от <strong>{{ free_delivery_from }} BYN</strong>.
+        </p>
+    {% else %}
+        <p class="lead">Корзина пуста. Выберите товары в <a href="{% url 'pharmacy:medication_list' %}">каталоге</a>.</p>
+    {% endif %}
+</section>
+
+{% if lines %}
+<section class="card" id="cart-items" aria-labelledby="cart-items-title">
+    <h2 id="cart-items-title">Товары в заказе</h2>
+    <div class="table-scroll">
+        <table class="data-table">
+            <caption>Состав заказа. Количество меняется кнопками <q>−</q> и <q>+</q>, цены указаны в BYN.</caption>
+            <thead>
+                <tr>
+                    <th id="c-item" scope="col">Товар</th>
+                    <th id="c-price" scope="col" class="num">Цена</th>
+                    <th id="c-qty" scope="col" class="num">Количество</th>
+                    <th id="c-sum" scope="col" class="num">Сумма</th>
+                    <th id="c-actions" scope="col">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in lines %}
+                    <tr data-medication-id="{{ line.medication.pk }}">
+                        <th id="ci-{{ line.medication.pk }}" scope="row" headers="c-item" style="text-align:left; font-weight:500;">
+                            <a href="{{ line.medication.get_absolute_url }}">{{ line.medication.name }}</a>
+                            <br><small class="muted">{{ line.medication.category.name }} · код <samp>{{ line.medication.code }}</samp></small>
+                            {% if line.exceeds_stock %}
+                                <br><small class="pill pill-warn">на складе только {{ line.medication.quantity }}</small>
+                            {% endif %}
+                        </th>
+                        <td class="num" headers="c-price ci-{{ line.medication.pk }}">{{ line.medication.price }}</td>
+                        <td class="num" headers="c-qty ci-{{ line.medication.pk }}">
+                            <div class="cart-actions" style="justify-content:flex-end;">
+                                <form method="post" action="{% url 'cart:change' line.medication.pk %}" class="qty-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="decrease">
+                                    <button type="submit" class="btn btn-small" title="Уменьшить количество"
+                                            aria-label="Уменьшить количество «{{ line.medication.name }}»">−</button>
+                                </form>
+
+                                <form method="post" action="{% url 'cart:set_quantity' line.medication.pk %}" class="qty-form">
+                                    {% csrf_token %}
+                                    <label for="qty-{{ line.medication.pk }}" class="visually-hidden">Количество «{{ line.medication.name }}»</label>
+                                    <input type="number" id="qty-{{ line.medication.pk }}" name="quantity"
+                                           value="{{ line.quantity }}" min="1" max="99" step="1"
+                                           inputmode="numeric" required>
+                                    <button type="submit" class="btn btn-small" title="Применить количество">OK</button>
+                                </form>
+
+                                <form method="post" action="{% url 'cart:change' line.medication.pk %}" class="qty-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="increase">
+                                    <button type="submit" class="btn btn-small" title="Увеличить количество"
+                                            aria-label="Увеличить количество «{{ line.medication.name }}»">+</button>
+                                </form>
+                            </div>
+                        </td>
+                        <td class="num" headers="c-sum ci-{{ line.medication.pk }}"><strong>{{ line.total_price }}</strong></td>
+                        <td headers="c-actions ci-{{ line.medication.pk }}">
+                            <form method="post" action="{% url 'cart:remove' line.medication.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-small"
+                                        title="Удалить «{{ line.medication.name }}» из корзины">🗑 Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th id="c-subtotal" colspan="3" scope="row">Сумма позиций</th>
+                    <td class="num" headers="c-subtotal">{{ totals.subtotal }}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th id="c-delivery" colspan="3" scope="row">Доставка</th>
+                    <td class="num" headers="c-delivery">
+                        {% if totals.delivery %}{{ totals.delivery }}{% else %}<span class="pill badge-ok">бесплатно</span>{% endif %}
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th id="c-total" colspan="3" scope="row">Итого к оплате</th>
+                    <td class="num" headers="c-total"><strong class="price">{{ totals.total }} BYN</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="cart-actions" style="margin-top:1rem;">
+        <a class="btn btn-primary" href="{% url 'cart:checkout' %}" rel="nofollow">💳 Оплатить</a>
+        <a class="btn" href="{% url 'pharmacy:medication_list' %}">← Продолжить покупки</a>
+        <form method="post" action="{% url 'cart:clear' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn">Очистить корзину</button>
+        </form>
+    </div>
+</section>
+
+{% if promos %}
+<aside class="card" id="cart-promos" aria-labelledby="cart-promos-title">
+    <h2 id="cart-promos-title">Действующие промокоды</h2>
+    <ul>
+        {% for promo in promos %}
+            <li>
+                <code translate="no">{{ promo.code }}</code> — −{{ promo.discount_percent }}%,
+                {{ promo.title }}, до <time datetime="{{ promo.valid_to|date:'Y-m-d' }}">{{ promo.valid_to|date:"d.m.Y" }}</time>
+            </li>
+        {% endfor %}
+    </ul>
+    <p class="muted">Код вводится на <a href="{% url 'cart:checkout' %}" rel="nofollow">странице оплаты</a>. Полный список — в разделе <a href="{% url 'core:promocodes' %}">Промокоды и купоны</a>.</p>
+</aside>
+{% endif %}
+
+{% else %}
+<section class="card">
+    <h2>Что делать дальше</h2>
+    <ol>
+        <li>Откройте <a href="{% url 'pharmacy:medication_list' %}">каталог препаратов</a>.</li>
+        <li>Перейдите в карточку товара и нажмите <q>Добавить в корзину</q>.</li>
+        <li>Вернитесь сюда и нажмите <q>Оплатить</q>.</li>
+    </ol>
+</section>
+{% endif %}
+{% endblock %}

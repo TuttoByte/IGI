@@ -1,78 +1,171 @@
 {% extends "frontend/base.html" %}
-{% block title %}{{ medication.name }}{% endblock %}
-{% block content %}
-<p><a class="btn btn-ghost" href="{% url 'pharmacy:medication_list' %}">К каталогу</a></p>
 
-<section class="card">
-    <span class="pill">{{ medication.code }}</span>
-    <h1>{{ medication.name }}</h1>
-    <div class="detail-meta">
-        <span class="pill">Цена: {{ medication.price }} BYN</span>
-        <span class="pill">Остаток: {{ medication.quantity }}</span>
-        <span class="pill">До {{ medication.expiration_date }}</span>
-        {% if review_stats.approved_count %}
-            <span class="pill">{{ review_stats.avg_rating }}★ · {{ review_stats.approved_count }} отз.</span>
-        {% else %}
-            <span class="pill">Нет отзывов</span>
-        {% endif %}
-        {% if medication.requires_prescription %}<span class="pill pill-warn">рецепт</span>{% endif %}
-        {% if medication.is_expired %}<span class="pill pill-danger">просрочен</span>{% endif %}
-        {% if medication.is_low_stock %}<span class="pill pill-warn">мало на складе</span>{% endif %}
+{% block title %}{{ medication.name }}{% endblock %}
+{% block meta_description %}{{ medication.name }} ({{ medication.manufacturer }}) — цена {{ medication.price }} BYN, состав, инструкция по применению, наличие в аптеке «Здоровье» и отзывы покупателей.{% endblock %}
+{% block meta_keywords %}{{ medication.name }}, {{ medication.category.name }}, {{ medication.manufacturer }}, купить лекарство, инструкция{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ medication.name }} — {{ medication.price }} BYN{% endblock %}
+{% block og_description %}{{ medication.description|truncatewords:25 }}{% endblock %}
+{% block og_image %}{% if medication.image %}{{ request.scheme }}://{{ request.get_host }}{{ medication.image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'pharmacy:medication_list' %}" itemprop="item"><span itemprop="name">Каталог</span></a>
+    <meta itemprop="position" content="2">
+</li>
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{{ medication.category.get_absolute_url }}" itemprop="item"><span itemprop="name">{{ medication.category.name }}</span></a>
+    <meta itemprop="position" content="3">
+</li>
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{{ medication.get_absolute_url }}" itemprop="item"><span itemprop="name">{{ medication.name }}</span></a>
+    <meta itemprop="position" content="4">
+</li>
+{% endblock %}
+
+{% block content %}
+<article class="card" id="product" itemscope itemtype="https://schema.org/Product"
+         itemref="description reviews" data-medication-id="{{ medication.pk }}">
+    <p><span class="pill">код <samp itemprop="sku">{{ medication.code }}</samp></span></p>
+    <h1 itemprop="name">{{ medication.name }}</h1>
+
+    <div class="med-row">
+        <figure style="margin:0; width:min(100%, 22rem);">
+            {% if medication.image %}
+                <img class="detail-image" src="{{ medication.image.url }}" itemprop="image"
+                     alt="Упаковка препарата {{ medication.name }} производства {{ medication.manufacturer }}"
+                     width="480" height="360" decoding="async"
+                     style="width:100%; height:auto;">
+            {% else %}
+                <div class="med-thumb-placeholder" style="width:100%; aspect-ratio:4/3;">фото нет</div>
+            {% endif %}
+            <figcaption class="muted">
+                {{ medication.name }}, производитель <span itemprop="brand">{{ medication.manufacturer }}</span>
+            </figcaption>
+        </figure>
+
+        <div class="med-main">
+            {# ---- Цена, наличие и «Добавить в корзину» ---- #}
+            <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                <p class="price" style="font-size:1.4rem;">
+                    <span itemprop="price">{{ medication.price }}</span> BYN
+                    <meta itemprop="priceCurrency" content="BYN">
+                    <link itemprop="availability" href="https://schema.org/{% if medication.quantity %}InStock{% else %}OutOfStock{% endif %}">
+                </p>
+
+                <p class="detail-meta">
+                    <span class="pill">остаток: {{ medication.quantity }} уп.</span>
+                    <span class="pill">годен до <time datetime="{{ medication.expiration_date|date:'Y-m-d' }}">{{ medication.expiration_date|date:"d.m.Y" }}</time></span>
+                    {% if medication.requires_prescription %}<span class="pill pill-warn" title="Отпускается только по рецепту врача">по рецепту</span>{% endif %}
+                    {% if medication.is_expired %}<span class="pill pill-danger">просрочен</span>{% endif %}
+                    {% if medication.is_low_stock %}<span class="pill pill-warn">мало на складе</span>{% endif %}
+                </p>
+
+                <form method="post" action="{% url 'cart:add' medication.pk %}" class="qty-form" name="add-to-cart">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'cart:detail' %}">
+                    <label for="add-qty">Количество</label>
+                    <input type="number" id="add-qty" name="quantity" value="1" min="1" max="99" step="1"
+                           inputmode="numeric" required aria-describedby="add-qty-help">
+                    <button type="submit" class="btn btn-primary" title="Добавить «{{ medication.name }}» в корзину">
+                        🛒 Добавить в корзину
+                    </button>
+                </form>
+                <small class="help-text" id="add-qty-help">От 1 до 99 упаковок за один раз.</small>
+            </div>
+
+            <dl class="fact-list">
+                <dt>Производитель</dt>
+                <dd>{{ medication.manufacturer }}</dd>
+                <dt>Категория</dt>
+                <dd><a href="{{ medication.category.get_absolute_url }}" itemprop="category">{{ medication.category.name }}</a></dd>
+                <dt>Отдел</dt>
+                <dd><a href="{{ medication.department.get_absolute_url }}">{{ medication.department.name }}</a> (этаж {{ medication.department.floor }})</dd>
+                <dt>Оценка</dt>
+                <dd>
+                    {% if review_stats.approved_count %}
+                        <span itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
+                            <strong itemprop="ratingValue">{{ review_stats.avg_rating }}</strong> из 5
+                            (<span itemprop="reviewCount">{{ review_stats.approved_count }}</span> отз.)
+                        </span>
+                    {% else %}
+                        <span class="muted">пока нет отзывов</span>
+                    {% endif %}
+                </dd>
+            </dl>
+
+            <p class="cart-actions">
+                <a class="btn" href="{% url 'pharmacy:external_lookup' %}?q={{ medication.name|urlencode }}">Проверить в справочниках</a>
+                <a class="btn btn-ghost" href="{% url 'pharmacy:medication_list' %}">← К каталогу</a>
+            </p>
+        </div>
+    </div>
+</article>
+
+{# ---- Описание и инструкция ---- #}
+<section class="card" id="description" aria-labelledby="description-title">
+    <h2 id="description-title">Описание</h2>
+    <div class="text-content" itemprop="description">
+        {% if medication.description %}{{ medication.description|linebreaks }}{% else %}<p class="muted">Описание не заполнено.</p>{% endif %}
     </div>
 
-    <p class="lead">Производитель: <strong>{{ medication.manufacturer }}</strong></p>
-    <p class="lead">
-        Категория: <a href="{{ medication.category.get_absolute_url }}">{{ medication.category.name }}</a>
-        · Отдел: <a href="{{ medication.department.get_absolute_url }}">{{ medication.department.name }}</a>
+    <h2 id="instruction">Инструкция по применению</h2>
+    <pre class="plain-pre code-listing">{{ medication.instruction|default:"Инструкция не заполнена." }}</pre>
+    <p class="muted">
+        <small>
+            <strong>Внимание!</strong> Имеются противопоказания. Перед применением ознакомьтесь с инструкцией
+            и проконсультируйтесь со специалистом. Информация не заменяет назначение врача.
+        </small>
     </p>
-    <p class="actions">
-        <a class="btn" href="{% url 'pharmacy:external_lookup' %}?q={{ medication.name|urlencode }}">Проверить в справочниках</a>
-    </p>
+</section>
 
-    {% if medication.image %}
-        <p><img class="detail-image" src="{{ medication.image.url }}" alt=""></p>
-    {% endif %}
-
-    <h2>Поставщики</h2>
-    <ul class="med-list">
+{# ---- Поставщики ---- #}
+<section class="card" id="suppliers" aria-labelledby="suppliers-title">
+    <h2 id="suppliers-title">Поставщики</h2>
+    <ul>
         {% for s in medication.suppliers.all %}
-            <li><a href="{{ s.get_absolute_url }}">{{ s.name }}</a> · {{ s.contract_number }}</li>
+            <li>{{ s.name }} <small class="muted">— договор <samp>{{ s.contract_number }}</samp></small></li>
         {% empty %}
-            <li class="lead">Не указаны.</li>
+            <li class="muted">Не указаны.</li>
         {% endfor %}
     </ul>
+</section>
 
-    <h2>Отзывы</h2>
-    <p class="actions">
+{# ---- Отзывы ---- #}
+<section class="card" id="reviews" aria-labelledby="reviews-title">
+    <h2 id="reviews-title">Отзывы покупателей</h2>
+    <p class="cart-actions">
         {% if user.is_authenticated %}
             {% if user_review %}
                 <a class="btn btn-ghost" href="{% url 'reviews:review_detail' user_review.pk %}">Мой отзыв</a>
-                <a class="btn btn-primary" href="{% url 'reviews:review_update' user_review.pk %}">Изменить</a>
+                <a class="btn btn-primary" href="{% url 'reviews:review_update' user_review.pk %}">Изменить отзыв</a>
             {% else %}
                 <a class="btn btn-primary" href="{% url 'reviews:review_create' medication.slug %}">Оставить отзыв</a>
             {% endif %}
         {% else %}
-            <span class="lead">Чтобы оставить отзыв, <a href="{% url 'accounts:login' %}">войдите</a>.</span>
+            <a class="btn btn-primary" href="{% url 'accounts:register' %}">Зарегистрироваться и оставить отзыв</a>
+            <a class="btn" href="{% url 'accounts:login' %}?next={% url 'reviews:review_create' medication.slug %}">Войти</a>
         {% endif %}
-        <a class="btn btn-ghost" href="{% url 'reviews:review_list' %}?medication={{ medication.pk }}">Все отзывы</a>
+        <a class="btn btn-ghost" href="{% url 'reviews:review_list' %}?medication={{ medication.pk }}">Все отзывы о препарате</a>
     </p>
 
     {% if latest_reviews %}
         <ul class="med-list">
             {% for r in latest_reviews %}
-                <li class="lead">
-                    <strong>{{ r.rating }}★</strong> · {{ r.user.username }} · {{ r.created_at|date:"d.m.Y" }}
-                    {% if r.text %} — {{ r.text|truncatewords:24 }}{% endif %}
+                <li class="card" itemprop="review" itemscope itemtype="https://schema.org/Review">
+                    <p>
+                        <strong itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
+                            <span itemprop="ratingValue">{{ r.rating }}</span>★
+                        </strong>
+                        · <span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="name">{{ r.user.username }}</span></span>
+                        · <time datetime="{{ r.created_at|date:"Y-m-d\TH:i:sO" }}" itemprop="datePublished">{{ r.created_at|date:"d.m.Y" }}</time>
+                    </p>
+                    {% if r.text %}<blockquote style="margin:0;"><p itemprop="reviewBody">{{ r.text }}</p></blockquote>{% endif %}
                 </li>
             {% endfor %}
         </ul>
     {% else %}
-        <p class="lead">Пока нет опубликованных отзывов.</p>
+        <p class="muted">Пока нет опубликованных отзывов — станьте первым.</p>
     {% endif %}
-
-    <h2>Описание</h2>
-    <p class="lead">{{ medication.description|default:"—" }}</p>
-    <h2>Инструкция</h2>
-    <pre class="plain-pre">{{ medication.instruction|default:"—" }}</pre>
 </section>
 {% endblock %}

@@ -1,60 +1,104 @@
 {% extends "frontend/base.html" %}
-{% block title %}Каталог препаратов{% endblock %}
-{% block content %}
-<h1>Каталог препаратов</h1>
 
-<section class="card">
-    <form method="get" class="filters">
+{% block title %}Каталог препаратов{% endblock %}
+{% block meta_description %}Каталог аптеки «Здоровье»: лекарства, витамины и товары для ухода с ценами, остатками и отзывами. Фильтры по категории, отделу и цене.{% endblock %}
+{% block meta_keywords %}каталог лекарств, купить препараты, аптека онлайн, цены на лекарства Минск{% endblock %}
+{% block og_title %}Каталог препаратов — Аптека «Здоровье»{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'pharmacy:medication_list' %}" itemprop="item"><span itemprop="name">Каталог</span></a>
+    <meta itemprop="position" content="2">
+</li>
+{% endblock %}
+
+{% block content %}
+<section class="card" aria-labelledby="catalog-page-title">
+    <h1 id="catalog-page-title">Каталог препаратов</h1>
+    <p class="lead">
+        Нажмите на название товара, чтобы открыть карточку с инструкцией и отзывами,
+        либо добавьте товар в корзину прямо из списка.
+    </p>
+</section>
+
+<section class="card" id="filters" aria-labelledby="filters-title">
+    <h2 id="filters-title">Фильтры</h2>
+    <form method="get" action="{% url 'pharmacy:medication_list' %}" class="filters" role="search">
         {{ filter.form.as_p }}
-        <p class="actions">
+        <p class="filter-actions">
             <button class="btn btn-primary" type="submit">Применить</button>
             <a class="btn btn-ghost" href="{% url 'pharmacy:medication_list' %}">Сбросить</a>
         </p>
     </form>
 </section>
 
-<ul class="med-list">
-    {% for m in medications %}
-        <li class="card">
-            <div class="med-row">
-                {% if m.image %}
-                    <a href="{{ m.get_absolute_url }}"><img class="med-thumb" src="{{ m.image.url }}" alt=""></a>
-                {% else %}
-                    <div class="med-thumb-placeholder">нет фото</div>
-                {% endif %}
-                <div class="med-main">
-                    <div class="med-head">
-                        <div>
-                            <a href="{{ m.get_absolute_url }}">{{ m.name }}</a>
-                            <span class="pill">{{ m.code }}</span>
-                            {% if m.approved_reviews_count %}
-                                <span class="pill">{{ m.avg_review_rating|floatformat:1 }}★ · {{ m.approved_reviews_count }} отз.</span>
-                            {% endif %}
+<section id="catalog-items" aria-labelledby="catalog-items-title">
+    <h2 id="catalog-items-title" class="visually-hidden">Список товаров</h2>
+    <ul class="med-list" itemscope itemtype="https://schema.org/ItemList">
+        {% for m in medications %}
+            <li class="card" itemprop="itemListElement" itemscope itemtype="https://schema.org/Product"
+                data-medication-id="{{ m.pk }}">
+                <div class="med-row">
+                    {% if m.image %}
+                        <a href="{{ m.get_absolute_url }}" title="Открыть карточку: {{ m.name }}">
+                            <img class="med-thumb" src="{{ m.image.url }}" itemprop="image"
+                                 alt="Упаковка препарата {{ m.name }}" width="72" height="54"
+                                 loading="lazy" decoding="async">
+                        </a>
+                    {% else %}
+                        <div class="med-thumb-placeholder">нет фото</div>
+                    {% endif %}
+
+                    <div class="med-main">
+                        <div class="med-head">
+                            <div>
+                                <a href="{{ m.get_absolute_url }}" itemprop="name">{{ m.name }}</a>
+                                <span class="pill"><samp itemprop="sku">{{ m.code }}</samp></span>
+                                {% if m.approved_reviews_count %}
+                                    <span class="pill" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
+                                        <span itemprop="ratingValue">{{ m.avg_review_rating|floatformat:1 }}</span>★ ·
+                                        <span itemprop="reviewCount">{{ m.approved_reviews_count }}</span> отз.
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <span class="price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                                <span itemprop="price">{{ m.price }}</span> BYN
+                                <meta itemprop="priceCurrency" content="BYN">
+                            </span>
                         </div>
-                        <span class="price">{{ m.price }} BYN</span>
+
+                        <p class="lead">
+                            Остаток: {{ m.quantity }}
+                            {% if m.is_expired %}<span class="pill pill-danger">просрочен</span>{% endif %}
+                            {% if m.is_low_stock %}<span class="pill pill-warn">мало</span>{% endif %}
+                            · {{ m.category.name }} · {{ m.department.name }}
+                        </p>
+
+                        <form method="post" action="{% url 'cart:add' m.pk %}" class="qty-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-primary btn-small"
+                                    title="Добавить «{{ m.name }}» в корзину">🛒 В корзину</button>
+                            <a class="btn btn-small" href="{{ m.get_absolute_url }}">Подробнее</a>
+                        </form>
                     </div>
-                    <p class="lead">
-                        Остаток: {{ m.quantity }}
-                        {% if m.is_expired %}<span class="pill pill-danger">просрочен</span>{% endif %}
-                        {% if m.is_low_stock %}<span class="pill pill-warn">мало</span>{% endif %}
-                        · {{ m.category.name }} · {{ m.department.name }}
-                    </p>
                 </div>
-            </div>
-        </li>
-    {% empty %}
-        <li class="lead">Ничего не найдено. Запустите <code>python manage.py seed_demo</code> для демо-данных.</li>
-    {% endfor %}
-</ul>
+            </li>
+        {% empty %}
+            <li class="card muted">Ничего не найдено. Запустите <code>python manage.py seed_demo</code> для демо-данных.</li>
+        {% endfor %}
+    </ul>
+</section>
 
 {% if is_paginated %}
-<nav class="card pagination">
+<nav class="card pagination" aria-label="Постраничная навигация каталога">
     {% if page_obj.has_previous %}
-        <a class="btn btn-ghost" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">Назад</a>
+        <a class="btn btn-ghost" rel="prev" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">← Назад</a>
     {% endif %}
-    <span class="lead">Стр. {{ page_obj.number }} из {{ paginator.num_pages }}</span>
+    <span class="lead">Страница {{ page_obj.number }} из {{ paginator.num_pages }}</span>
     {% if page_obj.has_next %}
-        <a class="btn btn-ghost" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Вперёд</a>
+        <a class="btn btn-ghost" rel="next" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Вперёд →</a>
     {% endif %}
 </nav>
 {% endif %}

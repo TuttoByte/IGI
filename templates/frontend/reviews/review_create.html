@@ -1,14 +1,49 @@
 {% extends "frontend/base.html" %}
-{% block title %}Новый отзыв · {{ medication.name }}{% endblock %}
+
+{% block title %}Отзыв о «{{ medication.name }}»{% endblock %}
+{% block meta_description %}Форма отзыва о препарате {{ medication.name }}: оценка от 1 до 5 и текст отзыва.{% endblock %}
+{% block meta_robots %}noindex, follow{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{{ medication.get_absolute_url }}" itemprop="item"><span itemprop="name">{{ medication.name }}</span></a>
+    <meta itemprop="position" content="2">
+</li>
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'reviews:review_create' medication.slug %}" itemprop="item"><span itemprop="name">Новый отзыв</span></a>
+    <meta itemprop="position" content="3">
+</li>
+{% endblock %}
+
 {% block content %}
-<p><a class="btn btn-ghost" href="{{ medication.get_absolute_url }}">← {{ medication.name }}</a></p>
-<section class="card animate-enter" style="margin-top:1rem;">
-    <h1 style="font-size:1.2rem;">Отзыв о препарате</h1>
-    <p class="lead">{{ medication.name }} <span class="pill">{{ medication.code }}</span></p>
-    <form method="post" class="filters" style="margin-top:1rem;">
+<section class="card narrow" aria-labelledby="review-form-title">
+    <h1 id="review-form-title">Отзыв о препарате</h1>
+    <p class="lead">
+        <a href="{{ medication.get_absolute_url }}">{{ medication.name }}</a>
+        <span class="pill"><samp>{{ medication.code }}</samp></span>
+    </p>
+    <p class="muted">Отзыв публикуется от имени <strong>{{ user.username }}</strong> после модерации.</p>
+
+    <form method="post" action="{% url 'reviews:review_create' medication.slug %}" name="review">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Отправить на модерацию</button>
+
+        {% if form.non_field_errors %}
+            <ul class="errorlist" role="alert">
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+
+        <fieldset>
+            <legend>Ваша оценка</legend>
+            {% include "frontend/cart/_field.html" with field=form.rating %}
+            {% include "frontend/cart/_field.html" with field=form.text %}
+        </fieldset>
+
+        <p class="form-actions cart-actions">
+            <button type="submit" class="btn btn-primary">Отправить</button>
+            <button type="reset" class="btn">Очистить</button>
+            <a class="btn btn-ghost" href="{{ medication.get_absolute_url }}">Отмена</a>
+        </p>
     </form>
 </section>
 {% endblock %}

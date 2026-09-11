@@ -1,0 +1,107 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Оплата прошла успешно{% endblock %}
+{% block meta_description %}Подтверждение оплаты заказа в аптеке «Здоровье».{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'cart:success' %}" itemprop="item"><span itemprop="name">Оплата выполнена</span></a>
+    <meta itemprop="position" content="2">
+</li>
+{% endblock %}
+
+{% block content %}
+{% if order %}
+<article class="card" aria-labelledby="success-title" itemscope itemtype="https://schema.org/Order">
+    <h1 id="success-title">✅ Оплата прошла успешно</h1>
+    <p class="lead">
+        Спасибо, <strong itemprop="customer">{{ order.full_name }}</strong>!
+        Заказ оплачен <time datetime="{% now 'Y-m-d\TH:i' %}">{% now "d.m.Y в H:i" %}</time>
+        и передан в аптеку. Подтверждение отправлено на <a href="mailto:{{ order.email }}">{{ order.email }}</a>.
+    </p>
+
+    <h2>Чек</h2>
+    <div class="table-scroll">
+        <table class="data-table">
+            <caption>Оплаченные позиции, суммы в BYN.</caption>
+            <thead>
+                <tr>
+                    <th id="r-item" scope="col">Товар</th>
+                    <th id="r-qty" scope="col" class="num">Кол-во</th>
+                    <th id="r-sum" scope="col" class="num">Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items %}
+                    <tr>
+                        <th id="ri-{{ forloop.counter }}" scope="row" headers="r-item" style="text-align:left; font-weight:500;">{{ item.name }}</th>
+                        <td class="num" headers="r-qty ri-{{ forloop.counter }}">{{ item.quantity }}</td>
+                        <td class="num" headers="r-sum ri-{{ forloop.counter }}">{{ item.sum }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th id="r-sub" colspan="2" scope="row">Сумма позиций</th>
+                    <td class="num" headers="r-sub">{{ order.subtotal }}</td>
+                </tr>
+                <tr>
+                    <th id="r-del" colspan="2" scope="row">Доставка</th>
+                    <td class="num" headers="r-del">{{ order.delivery }}</td>
+                </tr>
+                {% if order.promo_code %}
+                    <tr>
+                        <th id="r-disc" colspan="2" scope="row">Скидка по промокоду <code translate="no">{{ order.promo_code }}</code></th>
+                        <td class="num" headers="r-disc">−{{ order.discount }}</td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <th id="r-tot" colspan="2" scope="row">Оплачено</th>
+                    <td class="num" headers="r-tot"><strong class="price">{{ order.total }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <h2>Детали доставки</h2>
+    <dl class="fact-list">
+        <dt>Способ получения</dt>
+        <dd>
+            {% if order.delivery_method == 'PICKUP' %}Самовывоз из аптеки
+            {% elif order.delivery_method == 'COURIER' %}Курьером по городу
+            {% else %}Почтовая доставка{% endif %}
+        </dd>
+        <dt>Дата получения</dt>
+        <dd><time datetime="{{ order.delivery_date }}">{{ order.delivery_date }}</time></dd>
+        <dt>Способ оплаты</dt>
+        <dd>
+            {% if order.payment_method == 'CARD' %}Банковская карта
+            {% elif order.payment_method == 'ERIP' %}ЕРИП / Расчёт
+            {% else %}Наличными при получении{% endif %}
+        </dd>
+        <dt>Телефон для связи</dt>
+        <dd><a href="tel:{{ order.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}">{{ order.phone }}</a></dd>
+    </dl>
+
+    <p class="cart-actions">
+        <a class="btn btn-primary" href="{% url 'pharmacy:medication_list' %}">Вернуться в каталог</a>
+        <a class="btn" href="{% url 'core:home' %}">На главную</a>
+        <a class="btn" href="{% url 'reviews:review_list' %}">Оставить отзыв</a>
+    </p>
+    <p class="muted">
+        <small>
+            Рецептурные препараты выдаются только при предъявлении рецепта.
+            Возврат лекарственных средств надлежащего качества не производится
+            (<abbr title="Постановление Совета Министров Республики Беларусь">Пост. Совмина РБ</abbr>).
+        </small>
+    </p>
+</article>
+{% else %}
+<section class="card">
+    <h1>Заказ не найден</h1>
+    <p class="lead">Данные об оплате отсутствуют в текущей сессии.</p>
+    <p><a class="btn btn-primary" href="{% url 'pharmacy:medication_list' %}">Перейти в каталог</a></p>
+</section>
+{% endif %}
+{% endblock %}

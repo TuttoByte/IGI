@@ -1,16 +1,60 @@
 {% extends "frontend/base.html" %}
+
 {% block title %}{{ article.title }}{% endblock %}
+{% block meta_description %}{{ article.lead|truncatechars:180 }}{% endblock %}
+{% block meta_keywords %}новости аптеки, {{ article.title }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ article.title }}{% endblock %}
+{% block og_description %}{{ article.lead|truncatechars:180 }}{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.image.url }}{% endblock %}
+
+{% block extra_head %}
+<meta property="article:published_time" content="{{ article.published_at|date:"Y-m-d\TH:i:sO" }}">
+<meta property="article:section" content="Новости аптеки">
+{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'core:news_list' %}" itemprop="item"><span itemprop="name">Новости</span></a>
+    <meta itemprop="position" content="2">
+</li>
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{{ article.get_absolute_url }}" itemprop="item"><span itemprop="name">{{ article.title }}</span></a>
+    <meta itemprop="position" content="3">
+</li>
+{% endblock %}
+
 {% block content %}
-<article class="card">
-    <p class="muted">{{ article.published_at|date:"d.m.Y H:i" }}</p>
-    <h1>{{ article.title }}</h1>
-    <img class="news-detail-image" src="{{ article.image.url }}" alt="{{ article.title }}">
-    <p class="lead">{{ article.lead }}</p>
-    <div class="text-content">
-        {{ article.content|linebreaks }}
-    </div>
-    <p class="form-actions">
-        <a class="btn" href="{% url 'core:news_list' %}">Все новости</a>
+<article class="card" itemscope itemtype="https://schema.org/NewsArticle">
+    <p class="muted">
+        Опубликовано
+        <time datetime="{{ article.published_at|date:"Y-m-d\TH:i:sO" }}" itemprop="datePublished">{{ article.published_at|date:"d.m.Y в H:i" }}</time>
+        {% if article.updated_at %}
+            · обновлено <time datetime="{{ article.updated_at|date:"Y-m-d\TH:i:sO" }}" itemprop="dateModified">{{ article.updated_at|date:"d.m.Y" }}</time>
+        {% endif %}
     </p>
+
+    <h1 itemprop="headline">{{ article.title }}</h1>
+
+    <figure style="margin:0 0 1rem;">
+        <img class="news-detail-image" src="{{ article.image.url }}" itemprop="image"
+             alt="Иллюстрация к статье «{{ article.title }}»" width="960" height="420" decoding="async">
+        <figcaption class="muted">Иллюстрация к материалу «{{ article.title }}»</figcaption>
+    </figure>
+
+    <p class="lead"><strong itemprop="description">{{ article.lead }}</strong></p>
+
+    <div class="text-content" itemprop="articleBody">{{ article.content|linebreaks }}</div>
+
+    <footer class="muted">
+        <p>
+            Автор: <span itemprop="author" itemscope itemtype="https://schema.org/Organization"><span itemprop="name">Редакция аптеки «Здоровье»</span></span>
+        </p>
+        <p class="cart-actions">
+            <a class="btn" href="{% url 'core:news_list' %}">← Все новости</a>
+            <a class="btn" href="{% url 'pharmacy:medication_list' %}">В каталог</a>
+            <a class="btn btn-ghost" href="#top">↑ Наверх</a>
+        </p>
+    </footer>
 </article>
 {% endblock %}

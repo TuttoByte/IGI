@@ -13,6 +13,7 @@ from io import BytesIO
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
@@ -51,6 +52,9 @@ class Command(BaseCommand):
             self._seed_catalog()
             self._seed_suppliers()
             self._seed_public_content()
+        # Контент публичного сайта (баннеры, партнёры, о компании, словарь,
+        # вакансии, промокоды) вынесен в отдельную идемпотентную команду.
+        call_command("seed_site")
         self.stdout.write(
             self.style.SUCCESS(
                 "\n╔════════════════════════════════════════════╗\n"

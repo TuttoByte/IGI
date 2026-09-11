@@ -1,0 +1,338 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}О компании{% endblock %}
+{% block meta_description %}История аптечной сети «Здоровье» по годам, реквизиты предприятия, сертификат соответствия, видеопрезентация и контакты аптеки в Минске.{% endblock %}
+{% block meta_keywords %}о компании, аптечная сеть, история компании, реквизиты, сертификат аптеки, лицензия Минздрава{% endblock %}
+{% block og_title %}О компании — Аптека «Здоровье»{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'core:about' %}" itemprop="item"><span itemprop="name">О компании</span></a>
+    <meta itemprop="position" content="2">
+</li>
+{% endblock %}
+
+{% block content %}
+{% if company %}
+<div class="layout-aside" itemscope itemtype="https://schema.org/Organization">
+
+    {# ============ Вертикальная навигация по якорям ============ #}
+    <aside class="card sidebar-sticky" aria-label="Содержание страницы">
+        <nav class="nav-vertical" aria-label="Разделы страницы «О компании»">
+            <h2 class="footer-title">Содержание</h2>
+            <ol class="nav-list-vertical">
+                <li><a href="#about-company">О компании</a></li>
+                <li><a href="#video">Видеопрезентация</a></li>
+                <li><a href="#history">История по годам</a></li>
+                <li><a href="#requisites">Реквизиты</a></li>
+                <li><a href="#certificate">Сертификат</a></li>
+                <li><a href="#verse">Девиз аптеки</a></li>
+                <li><a href="#api">Пример листинга</a></li>
+                <li><a href="#map">Как нас найти</a></li>
+            </ol>
+        </nav>
+        <hr>
+        <p class="muted">
+            <a href="{% static 'docs/rekvizity-apteka-zdorovie.txt' %}"
+               download="Реквизиты-Аптека-Здоровье.txt"
+               type="text/plain"
+               title="Скачать карточку предприятия в текстовом формате">⬇ Скачать реквизиты (TXT)</a>
+        </p>
+    </aside>
+
+    <div>
+        {# ============ Информация о компании ============ #}
+        <section class="card" id="about-company" aria-labelledby="about-title">
+            <figure style="margin:0 0 1rem;">
+                {% if company.logo %}
+                    <img class="company-logo" src="{{ company.logo.url }}" itemprop="logo"
+                         alt="Логотип компании {{ company.name }}" width="260" height="130" decoding="async">
+                {% else %}
+                    <img class="company-logo" src="{% static 'img/logo.svg' %}" itemprop="logo"
+                         alt="Логотип компании {{ company.name }}" width="260" height="64" decoding="async">
+                {% endif %}
+                <figcaption class="muted">Фирменный знак <span itemprop="legalName">{{ company.legal_name }}</span></figcaption>
+            </figure>
+
+            <h1 id="about-title" itemprop="name">{{ company.name }}</h1>
+            {% if company.tagline %}<p class="lead"><em itemprop="slogan">{{ company.tagline }}</em></p>{% endif %}
+
+            <p>
+                Работаем с <time datetime="{{ company.founded_year }}" itemprop="foundingDate">{{ company.founded_year }}</time> года.
+                Форма собственности — <abbr title="Унитарное предприятие">УП</abbr>,
+                учётный номер плательщика (<abbr title="Учётный номер плательщика">УНП</abbr>) указан в реквизитах.
+            </p>
+
+            <div class="text-content" itemprop="description">{{ company.about_text|linebreaks }}</div>
+
+            {% if company.mission %}
+                <h2>Миссия</h2>
+                <div class="text-content">{{ company.mission|linebreaks }}</div>
+            {% endif %}
+
+            {% if company.quote_text %}
+                <blockquote {% if company.quote_source_url %}cite="{{ company.quote_source_url }}"{% endif %}>
+                    <p>{{ company.quote_text }}</p>
+                    <footer>
+                        — <cite>{% if company.quote_source_url %}<a href="{{ company.quote_source_url }}" target="_blank" rel="noopener noreferrer">{{ company.quote_source }}</a>{% else %}{{ company.quote_source }}{% endif %}</cite>
+                    </footer>
+                </blockquote>
+                <p class="muted">
+                    Фармацевты аптеки повторяют это правило коротко: <q lang="la">Primum non nocere</q> — <i lang="ru">прежде всего не навреди</i>.
+                </p>
+            {% endif %}
+
+            <h2>Что мы делаем</h2>
+            <ul>
+                <li>Розничный отпуск лекарственных средств, в том числе по <dfn>рецепту</dfn> врача.</li>
+                <li>Изготовление лекарственных форм в производственном отделе.</li>
+                <li>Хранение с соблюдением температурного режима <span translate="no">+2…+8&nbsp;°C</span> для термолабильных препаратов.</li>
+                <li>Консультации провизора и подбор аналогов по <abbr title="Международное непатентованное наименование">МНН</abbr>.</li>
+            </ul>
+        </section>
+
+        {# ============ Видео и аудио ============ #}
+        <section class="card" id="video" aria-labelledby="video-title">
+            <h2 id="video-title">Видеопрезентация</h2>
+            <figure style="margin:0;">
+                {% if company.video %}
+                    <video class="company-video" controls preload="metadata"
+                           {% if company.video_poster %}poster="{{ company.video_poster.url }}"{% endif %}
+                           width="960" height="540">
+                        <source src="{{ company.video.url }}" type="video/mp4">
+                        <p>
+                            Ваш браузер не поддерживает встроенное видео.
+                            <a href="{{ company.video.url }}" download>Скачайте ролик</a>, чтобы посмотреть его локально.
+                        </p>
+                    </video>
+                {% else %}
+                    <p class="muted">Видеоролик не загружен.</p>
+                {% endif %}
+                <figcaption class="muted">Ролик о сети «Здоровье», <time datetime="PT10S">10 секунд</time>, без звука.</figcaption>
+            </figure>
+
+            {% if company.audio %}
+                <h3>Аудиоприветствие</h3>
+                <figure style="margin:0.5rem 0 0;">
+                    <audio controls preload="none" src="{{ company.audio.url }}">
+                        Ваш браузер не поддерживает элемент <code>audio</code>.
+                        <a href="{{ company.audio.url }}" download>Скачать аудиофайл</a>.
+                    </audio>
+                    <figcaption class="muted">Джингл аптеки, формат <abbr title="MPEG-1 Audio Layer III">MP3</abbr>.</figcaption>
+                </figure>
+            {% endif %}
+        </section>
+
+        {# ============ История по годам: таблица с объединёнными ячейками ============ #}
+        <section class="card" id="history" aria-labelledby="history-title">
+            <h2 id="history-title">История по годам</h2>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <caption>
+                        Ключевые события и показатели сети «Здоровье» с
+                        <time datetime="{{ company.founded_year }}">{{ company.founded_year }}</time> года.
+                        Денежные значения — в миллионах <abbr title="Белорусский рубль">BYN</abbr>.
+                    </caption>
+                    <colgroup>
+                        <col span="2">
+                        <col span="3" class="num-col">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th id="h-period" rowspan="2" scope="col">Период</th>
+                            <th id="h-event" rowspan="2" scope="col">Событие</th>
+                            <th id="h-numbers" colspan="3" scope="colgroup">Показатели на конец года</th>
+                        </tr>
+                        <tr>
+                            <th id="h-pharm" scope="col" class="num">Аптек</th>
+                            <th id="h-staff" scope="col" class="num">Сотрудников</th>
+                            <th id="h-revenue" scope="col" class="num">Выручка</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for milestone in milestones %}
+                            <tr>
+                                <th id="y-{{ milestone.year }}" scope="row" headers="h-period">
+                                    <time datetime="{{ milestone.year }}">{{ milestone.year }}</time>
+                                </th>
+                                <td headers="h-event y-{{ milestone.year }}">
+                                    <strong>{{ milestone.title }}</strong>
+                                    {% if milestone.description %}<br><small>{{ milestone.description }}</small>{% endif %}
+                                </td>
+                                <td class="num" headers="h-numbers h-pharm y-{{ milestone.year }}">{{ milestone.pharmacies_count }}</td>
+                                <td class="num" headers="h-numbers h-staff y-{{ milestone.year }}">{{ milestone.employees_count }}</td>
+                                <td class="num" headers="h-numbers h-revenue y-{{ milestone.year }}">{{ milestone.revenue_mln }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5" class="muted">История пока не заполнена.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th id="h-total" colspan="2" scope="row">Итого на сегодня</th>
+                            <td class="num" headers="h-total h-pharm">{{ last_milestone.pharmacies_count|default:"—" }}</td>
+                            <td class="num" headers="h-total h-staff">{{ last_milestone.employees_count|default:"—" }}</td>
+                            <td class="num" headers="h-total h-revenue">{{ last_milestone.revenue_mln|default:"—" }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        {# ============ Реквизиты ============ #}
+        <section class="card" id="requisites" aria-labelledby="requisites-title">
+            <h2 id="requisites-title">Реквизиты</h2>
+            <dl class="fact-list">
+                {% for key, value in company.requisites_pairs %}
+                    <dt>{{ key }}</dt>
+                    <dd>{{ value }}</dd>
+                {% empty %}
+                    <dt>Реквизиты</dt>
+                    <dd class="muted">не заполнены</dd>
+                {% endfor %}
+            </dl>
+            <address style="font-style:normal;" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+                <p><span itemprop="streetAddress">{{ company.address }}</span></p>
+                {% if company.phone %}<p>Телефон: <a href="tel:{{ company.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}" itemprop="telephone">{{ company.phone }}</a></p>{% endif %}
+                {% if company.email %}<p>Почта: <a href="mailto:{{ company.email }}?subject=Вопрос%20из%20раздела%20«О%20компании»" itemprop="email">{{ company.email }}</a></p>{% endif %}
+                {% if company.work_hours %}<p>Режим работы: {{ company.work_hours }}</p>{% endif %}
+            </address>
+            <p>
+                <a href="{% static 'docs/rekvizity-apteka-zdorovie.txt' %}" download="Реквизиты-Аптека-Здоровье.txt" type="text/plain">
+                    ⬇ Скачать карточку предприятия
+                </a>
+                · <a href="#top">Наверх</a>
+            </p>
+        </section>
+
+        {# ============ Сертификат ============ #}
+        <section class="card" id="certificate" aria-labelledby="certificate-title">
+            <h2 id="certificate-title">Сертификат</h2>
+            <p class="muted">
+                {{ company.certificate_title }}
+                {% if company.certificate_number %}№&nbsp;<samp>{{ company.certificate_number }}</samp>{% endif %}
+                {% if company.certificate_issued_at %}от <time datetime="{{ company.certificate_issued_at|date:'Y-m-d' }}">{{ company.certificate_issued_at|date:"d.m.Y" }}</time>{% endif %}{% if company.certificate_issuer %}, выдан: {{ company.certificate_issuer }}{% endif %}
+            </p>
+            {% if company.certificate_image %}
+                {# Загружено фото — показываем скан, текст оставляем расшифровкой #}
+                <figure>
+                    <a href="{{ company.certificate_image.url }}" target="_blank" rel="noopener noreferrer"
+                       title="Открыть сертификат в полном размере">
+                        <img class="certificate-image" src="{{ company.certificate_image.url }}"
+                             alt="{{ company.certificate_image_alt|default:company.certificate_title }}"
+                             width="900" height="1270" loading="lazy" decoding="async">
+                    </a>
+                    <figcaption>
+                        {{ company.certificate_title }}. Нажмите на изображение, чтобы открыть в полном размере, или
+                        <a href="{{ company.certificate_image.url }}" download>скачайте файл</a>.
+                    </figcaption>
+                </figure>
+                {% if company.certificate_text %}
+                    <details class="qa">
+                        <summary>Текстовая расшифровка сертификата</summary>
+                        <pre class="plain-pre code-listing">{{ company.certificate_text }}</pre>
+                    </details>
+                {% endif %}
+            {% else %}
+                <pre class="plain-pre code-listing">{{ company.certificate_text }}</pre>
+            {% endif %}
+        </section>
+
+        {# ============ Четверостишие ============ #}
+        <section class="card" id="verse" aria-labelledby="verse-title">
+            <h2 id="verse-title">Девиз аптеки</h2>
+
+            <h3>С фиксированным переводом строки</h3>
+            <figure style="margin:0 0 1rem;">
+                <pre class="verse">{{ company.quatrain }}</pre>
+                <figcaption class="muted">
+                    Строки разделены жёстко — тег <code>&lt;pre&gt;</code> сохраняет авторскую разбивку.
+                    {% if company.quatrain_author %}Автор: <cite>{{ company.quatrain_author }}</cite>.{% endif %}
+                </figcaption>
+            </figure>
+
+            <h3>С потенциальным переводом строки</h3>
+            <figure style="margin:0;">
+                <p class="verse verse-flow">
+                    Здоровье&nbsp;— это<wbr>&#8203;не&nbsp;случайность,<br>
+                    а&nbsp;ежедневный тихий труд:<br>
+                    режим, движение и&nbsp;чай<wbr>&#8203;ный<br>
+                    вечерний пятиминутный круг.
+                </p>
+                <figcaption class="muted">
+                    Здесь <code>&lt;br&gt;</code> задаёт обязательный перенос, <code>&lt;wbr&gt;</code> — только разрешённую точку переноса,
+                    а <code>&amp;nbsp;</code> запрещает разрыв внутри словосочетания.
+                </figcaption>
+            </figure>
+        </section>
+
+        {# ============ Листинг кода ============ #}
+        <section class="card" id="api" aria-labelledby="api-title">
+            <h2 id="api-title">Пример листинга</h2>
+            <p class="lead">
+                Публичный <abbr title="Application Programming Interface">API</abbr> каталога отвечает в формате
+                <abbr title="JavaScript Object Notation">JSON</abbr>. Проверить ответ можно командой
+                <kbd>curl</kbd>, статус-код успеха — <samp>200 OK</samp>, а параметр запроса обозначим как <var>q</var>.
+            </p>
+            <figure style="margin:0;">
+                <pre class="code-listing"><code>$ curl -s "https://pharmacy.local/api/health/"
+
+{
+    "status": "ok",
+    "medications": 24,
+    "updated_at": "2026-09-10T09:15:00+03:00"
+}</code></pre>
+                <figcaption class="muted">Листинг&nbsp;1 — проверка доступности API аптеки.</figcaption>
+            </figure>
+            <p class="muted">
+                Формула активности вещества обозначается как C<sub>8</sub>H<sub>9</sub>NO<sub>2</sub>,
+                а сноска в документации помечается символом<sup>1</sup>.
+                Старая цена <del datetime="2026-09-01">12.40 BYN</del> заменена на новую <ins datetime="2026-09-01">9.90 BYN</ins>.
+            </p>
+        </section>
+
+        {# ============ Карта (iframe) ============ #}
+        <section class="card" id="map" aria-labelledby="map-title">
+            <h2 id="map-title">Как нас найти</h2>
+            {% if company.map_embed_url %}
+                <figure style="margin:0;">
+                    <iframe class="responsive-frame"
+                            src="{{ company.map_embed_url }}"
+                            title="Карта расположения аптеки «Здоровье» в Минске"
+                            width="800" height="600"
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    <figcaption class="muted">
+                        Интерактивная карта <span translate="no">OpenStreetMap</span>.
+                        <a href="{{ company.map_embed_url }}" target="_blank" rel="noopener noreferrer">Открыть карту отдельно</a>.
+                    </figcaption>
+                </figure>
+            {% else %}
+                <p class="muted">Карта не настроена.</p>
+            {% endif %}
+        </section>
+
+        {# ============ Партнёры ============ #}
+        <section class="card" id="about-partners" aria-labelledby="about-partners-title">
+            <h2 id="about-partners-title">С кем мы работаем</h2>
+            <ul>
+                {% for partner in partners %}
+                    <li>
+                        <a href="{{ partner.site_url }}" target="_blank" rel="noopener noreferrer external">{{ partner.name }}</a>
+                        {% if partner.country %}<small class="muted">— {{ partner.country }}</small>{% endif %}
+                    </li>
+                {% empty %}
+                    <li class="muted">Список партнёров пуст.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+</div>
+{% else %}
+<section class="card">
+    <h1>О компании</h1>
+    <p class="muted">Информация о компании ещё не заполнена. Выполните <code>python manage.py seed_demo</code> или добавьте запись в админке.</p>
+</section>
+{% endif %}
+{% endblock %}

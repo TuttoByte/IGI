@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "apps.dashboard",
     "apps.cabinet",
     "apps.analytics",
+    "apps.cart",
 ]
 
 MIDDLEWARE = [
@@ -63,6 +64,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.cart.context_processors.cart_summary",
             ],
         },
     },
@@ -101,6 +103,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Домен аптеки: порог «мало на складе» для Medication.is_low_stock()
 PHARMACY_LOW_STOCK_THRESHOLD = 10
+
+# Корзина: стоимость доставки и порог бесплатной доставки (BYN)
+PHARMACY_DELIVERY_PRICE = "4.90"
+PHARMACY_FREE_DELIVERY_FROM = "60.00"
 
 # Внешние справочники лекарств. openFDA работает без ключа на малых лимитах,
 # но ключ можно добавить в .env для большего дневного лимита.

@@ -1,0 +1,173 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Оплата заказа{% endblock %}
+{% block meta_description %}Страница оплаты заказа аптеки «Здоровье»: контактные данные, способ получения, способ оплаты, промокод и подтверждение платежа.{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'cart:detail' %}" itemprop="item"><span itemprop="name">Корзина</span></a>
+    <meta itemprop="position" content="2">
+</li>
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'cart:checkout' %}" itemprop="item"><span itemprop="name">Оплата</span></a>
+    <meta itemprop="position" content="3">
+</li>
+{% endblock %}
+
+{% block content %}
+<section class="card" aria-labelledby="checkout-title">
+    <h1 id="checkout-title">Оплата товаров</h1>
+    <p class="lead">
+        Проверьте состав заказа и заполните форму. Поля со звёздочкой <span aria-hidden="true">*</span> обязательны.
+        Реквизиты карты передаются платёжному провайдеру и <strong>не сохраняются</strong> на сервере аптеки —
+        см. <a href="{% url 'core:privacy' %}#p-data">политику конфиденциальности</a>.
+    </p>
+</section>
+
+{# ============ Состав заказа ============ #}
+<section class="card" id="order-summary" aria-labelledby="order-summary-title">
+    <h2 id="order-summary-title">Состав заказа</h2>
+    <div class="table-scroll">
+        <table class="data-table">
+            <caption>Позиции заказа и итоговая сумма к оплате в BYN.</caption>
+            <thead>
+                <tr>
+                    <th id="o-item" scope="col">Товар</th>
+                    <th id="o-qty" scope="col" class="num">Кол-во</th>
+                    <th id="o-price" scope="col" class="num">Цена</th>
+                    <th id="o-sum" scope="col" class="num">Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in lines %}
+                    <tr>
+                        <th id="oi-{{ line.medication.pk }}" scope="row" headers="o-item" style="text-align:left; font-weight:500;">
+                            <a href="{{ line.medication.get_absolute_url }}">{{ line.medication.name }}</a>
+                        </th>
+                        <td class="num" headers="o-qty oi-{{ line.medication.pk }}">{{ line.quantity }}</td>
+                        <td class="num" headers="o-price oi-{{ line.medication.pk }}">{{ line.medication.price }}</td>
+                        <td class="num" headers="o-sum oi-{{ line.medication.pk }}">{{ line.total_price }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th id="o-sub" colspan="3" scope="row">Сумма позиций</th>
+                    <td class="num" headers="o-sub">{{ totals.subtotal }}</td>
+                </tr>
+                <tr>
+                    <th id="o-del" colspan="3" scope="row">Доставка</th>
+                    <td class="num" headers="o-del">{% if totals.delivery %}{{ totals.delivery }}{% else %}0.00{% endif %}</td>
+                </tr>
+                <tr>
+                    <th id="o-tot" colspan="3" scope="row">Итого</th>
+                    <td class="num" headers="o-tot"><strong class="price">{{ totals.total }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <p><a class="btn btn-ghost" href="{% url 'cart:detail' %}" rel="nofollow">← Изменить состав заказа</a></p>
+</section>
+
+{# ============ Форма оплаты ============ #}
+<section class="card" id="payment" aria-labelledby="payment-title">
+    <h2 id="payment-title">Данные для оплаты</h2>
+
+    <form method="post" action="{% url 'cart:checkout' %}" name="payment">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <ul class="errorlist" role="alert">
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+
+        <fieldset>
+            <legend>1. Получатель</legend>
+            <div class="field-row">
+                {% include "frontend/cart/_field.html" with field=form.full_name %}
+                {% include "frontend/cart/_field.html" with field=form.email %}
+                {% include "frontend/cart/_field.html" with field=form.phone %}
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>2. Получение заказа</legend>
+            {% include "frontend/cart/_field.html" with field=form.delivery_method %}
+            <div class="field-row">
+                {% include "frontend/cart/_field.html" with field=form.city %}
+                {% include "frontend/cart/_field.html" with field=form.address %}
+                {% include "frontend/cart/_field.html" with field=form.delivery_date %}
+                {% include "frontend/cart/_field.html" with field=form.delivery_time %}
+            </div>
+            <datalist id="city-options">
+                <option value="Минск"></option>
+                <option value="Гомель"></option>
+                <option value="Брест"></option>
+                <option value="Гродно"></option>
+                <option value="Витебск"></option>
+                <option value="Могилёв"></option>
+            </datalist>
+        </fieldset>
+
+        <fieldset>
+            <legend>3. Способ оплаты</legend>
+            {% include "frontend/cart/_field.html" with field=form.payment_method %}
+            <div class="field-row">
+                {% include "frontend/cart/_field.html" with field=form.card_number %}
+                {% include "frontend/cart/_field.html" with field=form.card_holder %}
+                {% include "frontend/cart/_field.html" with field=form.card_expiry %}
+                {% include "frontend/cart/_field.html" with field=form.card_cvc %}
+            </div>
+            <p class="muted">
+                <small>
+                    Тестовая карта для проверки: <samp translate="no">4500 1234 5678 9010</samp>,
+                    срок <samp>2030-12</samp>, <abbr title="Card Verification Code">CVC</abbr> <samp>123</samp>.
+                </small>
+            </p>
+        </fieldset>
+
+        <fieldset>
+            <legend>4. Скидки и пожелания</legend>
+            <div class="field-row">
+                {% include "frontend/cart/_field.html" with field=form.promo_code %}
+                {% include "frontend/cart/_field.html" with field=form.bonus_points %}
+            </div>
+            {% if promos %}
+                <datalist id="promo-list">
+                    {% for promo in promos %}<option value="{{ promo.code }}" label="−{{ promo.discount_percent }}%"></option>{% endfor %}
+                </datalist>
+                <p class="muted"><small>Доступные коды: {% for promo in promos %}<code translate="no">{{ promo.code }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}</small></p>
+            {% endif %}
+            {% include "frontend/cart/_field.html" with field=form.comment %}
+        </fieldset>
+
+        <fieldset>
+            <legend>5. Подтверждение</legend>
+            <div class="form-field">
+                <label for="{{ form.need_receipt.id_for_label }}">
+                    {{ form.need_receipt }} {{ form.need_receipt.label }}
+                </label>
+            </div>
+            <div class="form-field">
+                <label for="{{ form.accept_policy.id_for_label }}">
+                    {{ form.accept_policy }} Согласен с политикой конфиденциальности <span aria-hidden="true">*</span>
+                </label>
+                <small class="help-text">
+                    <a href="{% url 'core:privacy' %}" target="_blank" rel="noopener noreferrer">Открыть политику в новой вкладке</a>
+                </small>
+                {% if form.accept_policy.errors %}
+                    <ul class="errorlist">{% for error in form.accept_policy.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+        </fieldset>
+
+        <p class="form-actions cart-actions">
+            <button type="submit" class="btn btn-primary">💳 Оплатить {{ totals.total }} BYN</button>
+            <button type="reset" class="btn">Очистить форму</button>
+            <a class="btn btn-ghost" href="{% url 'cart:detail' %}" rel="nofollow">Отмена</a>
+        </p>
+    </form>
+</section>
+{% endblock %}

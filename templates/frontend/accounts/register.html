@@ -3,7 +3,7 @@
 {% block content %}
 <section class="card narrow">
     <h1>Регистрация</h1>
-    <form method="post" enctype="multipart/form-data" action="">
+    <form method="post" enctype="multipart/form-data" action="{% url 'accounts:register' %}">
         {% csrf_token %}
         {% if form.non_field_errors %}
             {{ form.non_field_errors }}

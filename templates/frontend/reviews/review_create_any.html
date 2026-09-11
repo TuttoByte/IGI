@@ -1,0 +1,49 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Новый отзыв{% endblock %}
+{% block meta_description %}Форма добавления отзыва о препарате: выбор товара, оценка от 1 до 5 и текст отзыва.{% endblock %}
+{% block meta_robots %}noindex, follow{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'reviews:review_list' %}" itemprop="item"><span itemprop="name">Отзывы</span></a>
+    <meta itemprop="position" content="2">
+</li>
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'reviews:review_create_any' %}" itemprop="item"><span itemprop="name">Новый отзыв</span></a>
+    <meta itemprop="position" content="3">
+</li>
+{% endblock %}
+
+{% block content %}
+<section class="card narrow" aria-labelledby="new-review-title">
+    <h1 id="new-review-title">Новый отзыв</h1>
+    <p class="lead">
+        Отзыв публикуется от имени <strong>{{ user.username }}</strong> после проверки модератором.
+        На один препарат — один отзыв.
+    </p>
+
+    <form method="post" action="{% url 'reviews:review_create_any' %}" name="review">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <ul class="errorlist" role="alert">
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+
+        <fieldset>
+            <legend>Отзыв о препарате</legend>
+            {% include "frontend/cart/_field.html" with field=form.medication %}
+            {% include "frontend/cart/_field.html" with field=form.rating %}
+            {% include "frontend/cart/_field.html" with field=form.text %}
+        </fieldset>
+
+        <p class="form-actions cart-actions">
+            <button type="submit" class="btn btn-primary">Отправить</button>
+            <button type="reset" class="btn">Очистить</button>
+            <a class="btn btn-ghost" href="{% url 'reviews:review_list' %}">Отмена</a>
+        </p>
+    </form>
+</section>
+{% endblock %}

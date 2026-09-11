@@ -1,0 +1,116 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Вакансии{% endblock %}
+{% block meta_description %}Открытые вакансии аптечной сети «Здоровье»: провизор, фармацевт, консультант торгового зала, кладовщик. Условия, зарплата и форма отклика.{% endblock %}
+{% block meta_keywords %}вакансии аптеки, работа провизором, работа фармацевтом, вакансии Минск аптека{% endblock %}
+{% block og_title %}Вакансии — Аптека «Здоровье»{% endblock %}
+
+{% block breadcrumb_items %}
+<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+    <a href="{% url 'core:vacancies' %}" itemprop="item"><span itemprop="name">Вакансии</span></a>
+    <meta itemprop="position" content="2">
+</li>
+{% endblock %}
+
+{% block content %}
+<section class="card" aria-labelledby="vacancies-title">
+    <h1 id="vacancies-title">Вакансии</h1>
+    <p class="lead">
+        Мы ищем сотрудников в аптеки Минска и области. Открыто вакансий: <strong>{{ vacancies|length }}</strong>.
+        Резюме присылайте на <a href="mailto:hr@pharmacy.local?subject=Резюме">hr@pharmacy.local</a>.
+    </p>
+    {% if applied_for %}
+        <p class="messages" role="status">Отклик на вакансию <q>{{ applied_for }}</q> отправлен. Мы свяжемся с вами в течение двух рабочих дней.</p>
+    {% endif %}
+</section>
+
+{% for vacancy in vacancies %}
+    <article class="card" id="vacancy-{{ vacancy.slug }}"
+             itemscope itemtype="https://schema.org/JobPosting"
+             data-employment="{{ vacancy.employment_type }}">
+        <div class="med-head">
+            <h2 itemprop="title">{{ vacancy.title }}</h2>
+            <span class="price" itemprop="baseSalary" itemscope itemtype="https://schema.org/MonetaryAmount">
+                <meta itemprop="currency" content="BYN">
+                <span itemprop="value" itemscope itemtype="https://schema.org/QuantitativeValue">
+                    <span itemprop="minValue">{{ vacancy.salary_from|floatformat:0 }}</span>–<span itemprop="maxValue">{{ vacancy.salary_to|floatformat:0 }}</span> BYN
+                </span>
+            </span>
+        </div>
+
+        <p class="detail-meta">
+            <span class="pill" itemprop="employmentType">{{ vacancy.get_employment_type_display }}</span>
+            <span class="pill" itemprop="jobLocation">{{ vacancy.city }}</span>
+            {% if vacancy.department %}<span class="pill">{{ vacancy.department.name }}</span>{% endif %}
+            <span class="pill">опыт от {{ vacancy.experience_years }} лет</span>
+            <span class="pill">
+                опубликована <time datetime="{{ vacancy.published_at|date:'Y-m-d' }}" itemprop="datePosted">{{ vacancy.published_at|date:"d.m.Y" }}</time>
+            </span>
+        </p>
+
+        <div class="text-content" itemprop="description">{{ vacancy.description|linebreaks }}</div>
+
+        {% if vacancy.responsibility_lines %}
+            <h3>Обязанности</h3>
+            <ul itemprop="responsibilities">
+                {% for line in vacancy.responsibility_lines %}<li>{{ line }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if vacancy.requirement_lines %}
+            <h3>Требования</h3>
+            <ol type="1" start="1" itemprop="qualifications">
+                {% for line in vacancy.requirement_lines %}<li>{{ line }}</li>{% endfor %}
+            </ol>
+        {% endif %}
+
+        <details class="qa">
+            <summary>Откликнуться на вакансию</summary>
+            <form method="get" action="{% url 'core:vacancies' %}#vacancy-{{ vacancy.slug }}" name="apply-{{ vacancy.slug }}">
+                <fieldset>
+                    <legend>Отклик: {{ vacancy.title }}</legend>
+                    <input type="hidden" name="applied" value="{{ vacancy.title }}">
+                    <div class="field-row">
+                        <p>
+                            <label for="name-{{ vacancy.slug }}">Имя и фамилия <span aria-hidden="true">*</span></label>
+                            <input type="text" id="name-{{ vacancy.slug }}" name="applicant_name"
+                                   required minlength="4" maxlength="120" autocomplete="name"
+                                   placeholder="Иван Иванов" autocapitalize="words">
+                        </p>
+                        <p>
+                            <label for="phone-{{ vacancy.slug }}">Телефон <span aria-hidden="true">*</span></label>
+                            <input type="tel" id="phone-{{ vacancy.slug }}" name="applicant_phone"
+                                   required pattern="\+375 ?\(?(25|29|33|44)\)? ?\d{3}-?\d{2}-?\d{2}"
+                                   placeholder="+375 (29) 700-10-01" inputmode="tel" autocomplete="tel"
+                                   aria-describedby="phone-help-{{ vacancy.slug }}">
+                            <small class="help-text" id="phone-help-{{ vacancy.slug }}">Формат: +375 (29) 700-10-01</small>
+                        </p>
+                        <p>
+                            <label for="exp-{{ vacancy.slug }}">Опыт работы, лет</label>
+                            <input type="number" id="exp-{{ vacancy.slug }}" name="applicant_experience"
+                                   min="0" max="50" step="1" value="{{ vacancy.experience_years }}" inputmode="numeric">
+                        </p>
+                        <p>
+                            <label for="start-{{ vacancy.slug }}">Готов приступить с</label>
+                            <input type="date" id="start-{{ vacancy.slug }}" name="applicant_start">
+                        </p>
+                    </div>
+                    <p>
+                        <label for="cover-{{ vacancy.slug }}">Сопроводительное письмо</label>
+                        <textarea id="cover-{{ vacancy.slug }}" name="applicant_cover" rows="3" maxlength="600"
+                                  placeholder="Коротко о вашем опыте"></textarea>
+                    </p>
+                    <p class="form-actions">
+                        <button type="submit" class="btn btn-primary">Отправить отклик</button>
+                        <button type="reset" class="btn">Очистить форму</button>
+                    </p>
+                </fieldset>
+            </form>
+        </details>
+    </article>
+{% empty %}
+    <section class="card">
+        <p class="muted">Открытых вакансий сейчас нет. Выполните <code>python manage.py seed_demo</code> для демо-данных.</p>
+    </section>
+{% endfor %}
+{% endblock %}
